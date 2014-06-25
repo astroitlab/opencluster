@@ -33,8 +33,8 @@ class ServiceContext(object):
     @classmethod    
     def getService(cls, host, port, servicename):
         uri = Conf.getUri(host, port, servicename)
-        
         return Pyro4.Proxy(uri)
+
     def getClientHost(self):
         return ""
 

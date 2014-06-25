@@ -47,14 +47,13 @@ class BeanContext(ServiceContext):
             cls.startWeb(server[0],server[1])
 
         signal.signal(signal.SIGINT, sigint_handler)
-        signal.signal(signal.SIGBREAK, sigint_handler)
         signal.signal(signal.SIGTERM, sigint_handler)
-
+        pyro_thread.join()
     @classmethod
     def startWorker(cls, host, port, workerType, worker):
         pyro_thread = cls.startService(host, port, workerType, WorkService(worker))
         signal.signal(signal.SIGINT, sigint_handler)
-        signal.signal(signal.SIGBREAK, sigint_handler)
+        signal.signal(signal.SIGTERM, sigint_handler)
     @classmethod
     def getPark(cls, host, port, servers, serviceName):
         return ParkLocal(host, port, serviceName, servers)

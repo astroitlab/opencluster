@@ -1,0 +1,4 @@
+examples/logs/*
+examples/*.pyc
+opencluster/*.pyc
+logs
