@@ -1,8 +1,7 @@
 """
-Definition of the various exceptions that are used in pycsrhflow.
-
-pycsrhflow - Python CSRH Flow Computing.  
-Copyright by www.cnlab.net (wsl@cnlab.net).
+Definition of the various exceptions that are used in opencluster.
+opencluster - Python Distibuted Computing API.
+Copyright by www.cnlab.net
 """
 import logging
 
