@@ -210,7 +210,7 @@ class ParkService(object):
         hbback = False
         if domainNodeKeys :
            for curKey in domainNodeKeys :
-               self.hbInfo.setObj(curKey, str(time.time()).replace(".",""))
+               self.hbInfo.setObj(curKey, time.time())
            hbback = True
         HbDaemon.runGetTask(self.hbInfo, self)
         return hbback

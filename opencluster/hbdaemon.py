@@ -40,12 +40,13 @@ class HbDaemon :
             if cpd > 0 :
                 logger.info("Run ClearTask")
                 exp = int(conf.Conf.getExpiration())
-                HbDaemon.clrTask = ClearTask(park,HbDaemon.pt,cpd)#second
+                HbDaemon.clrTask = ClearTask(park,exp,cpd)#second
                 HbDaemon.clrTask.start()
 
 class PutHbTask(threading.Thread) :
     def __init__(self,parkService,parkLeader,domain,node,sessionId,interval):
-        self.__parkServrice = parkService
+        super(PutHbTask,self).__init__()
+        self.__parkService = parkService
         self.__parkLeader = parkLeader
         self.__domain = domain
         self.__node = node
@@ -57,30 +58,33 @@ class PutHbTask(threading.Thread) :
     def run(self):
         while True :
             try:
-                self.finished.wait(self.interval*1000)
+                self.finished.wait(self.interval)
                 if not self.finished.is_set():
-                    self.__parkServrice.hearbeat(self.__putList)
+                    self.__parkService.heartbeat(self.__putList,self.__sessionId)
             except Exception,e :
                 logger.error(e)
                 if isinstance(e, Pyro4.errors.CommunicationError) :
-                    self.__parkServrice = self.__parkLeader.getNextLeader()
+                    self.__parkService = self.__parkLeader.getNextLeader()
 
 class GetHbTask(threading.Thread) :
     def __init__(self,parkService,hbinfo,interval):
-        self.__parkServrice = parkService
+        super(GetHbTask,self).__init__()
+        self.__parkService = parkService
         self.__hbinfo = hbinfo
         self.finished = threading.Event()
         self.interval = interval
     def run(self):
         while True :
-            self.finished.wait(self.interval*1000)
+            self.finished.wait(self.interval)
+
             if not self.finished.is_set():
                 for key in self.__hbinfo.keys() :
                     curtime = long(time.time())
-                    lasttime = self.__hbinfo.getObj(key)
-                    t = 0l
-                    if not lasttime :
-                        t = curtime - long(lasttime)
+                    lasttime = long(self.__hbinfo.getObj(key))
+
+                    t = 0
+                    if lasttime :
+                        t = int(curtime - lasttime)
                     if t > HbDaemon.gt :
                         if HbDaemon.dt > 0 and t/HbDaemon.gt < 2 :
                             logger.warning("%s Slow and week heartbeat" % key)
@@ -90,14 +94,15 @@ class GetHbTask(threading.Thread) :
                             self.__hbinfo.remove(key)
 
                             keys = key.split(HbDaemon.vs)
-                            self.__parkServrice.delete(keys[0],keys[1])
+                            print keys
+                            self.__parkService.delete(keys[0],keys[1])
                             logger.info("hbinfo:%s",self.__hbinfo)
 
 
 class ClearTask(threading.Thread) :
     def __init__(self,parkService,expl,interval):
-        threading.Thread.__init__(self)
-        self.__parkServrice = parkService
+        super(ClearTask,self).__init__()
+        self.__parkService = parkService
         self.__expl = expl*3600
         self.finished = threading.Event()
         self.interval = interval
@@ -106,7 +111,7 @@ class ClearTask(threading.Thread) :
             self.finished.wait(self.interval)
 
             if not self.finished.is_set():
-                pov = self.__parkServrice.getTheParkInfo()
+                pov = self.__parkService.getTheParkInfo()
                 keyArray = pov.getParkInfoExp(self.__expl)
 
                 if len(keyArray) > 0 :
@@ -114,5 +119,5 @@ class ClearTask(threading.Thread) :
                     #to do...
                 for keys in keyArray :
                     logger.info("[Clear],[Expiration]:%,%s" (pov.getDomainNodekey(keys[0],keys[1])))
-                    self.__parkServrice.delete(keys[0],keys[1])
+                    self.__parkService.delete(keys[0],keys[1])
             # self.finished.set()

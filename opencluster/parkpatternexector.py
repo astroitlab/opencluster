@@ -16,7 +16,7 @@ class ParkPatternExector(object):
         
     @classmethod
     def createWorkerTypeNode(cls, workerType, nodeValue):
-        return cls.getPark().createDomainNode("_worker_" + workerType, str(time.time()).replace(".", ""), nodeValue)
+        return cls.getPark().createDomainNode("_worker_" + workerType, str(time.time()).replace(".", ""), nodeValue,True)
     
     @classmethod
     def getLastestObjectBean(cls, ob):

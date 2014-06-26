@@ -13,6 +13,7 @@ class ParkLocal(object):
     
     def __init__(self, host, port, serviceName, servers):
         self.parkLeader = ParkLeader(host, port, serviceName, servers)
+        self.serverCount = len(servers)
         self.park = self.parkLeader.getLeaderPark()
         self.getSessionId(0)
 
@@ -21,11 +22,13 @@ class ParkLocal(object):
             if not ParkLocal.sid :
                 ParkLocal.sid = self.park.getSessionId()
         except Exception,e :
-            if isinstance(e,Pyro4.errors.CommunicationError) :
+            if isinstance(e,Pyro4.errors.CommunicationError)  :
                 logger.error("%s maybe is shutdown,can't connected. Try getNextLeader" % self.parkLeader.thisServer)
-                self.park = self.parkLeader.getNextLeader()
-                if self.park :
-                    self.getSessionId(count+1)
+
+                if count < self.serverCount :
+                    self.park = self.parkLeader.getNextLeader()
+                    if self.park :
+                        self.getSessionId(count+1)
 
     def createDomain(self, domain, ob):
         self.__put(domain,str(time.time()).replace(".",""),ob,False,0)
@@ -185,7 +188,7 @@ class ParkLocal(object):
 
 
     def ovToBean(self,ov,domain,node):
-        if ov and ov.isEmpty() :
+        if ov and not ov.isEmpty() :
             domainNodeKey = ParkObjValue.getDomainNodekey(domain,node)
             bean = ObjectBean()
             bean.name = domainNodeKey

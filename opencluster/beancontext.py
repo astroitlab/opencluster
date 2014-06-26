@@ -1,7 +1,13 @@
+"""
+opencluster - Python Distibuted Computing API.
+Copyright by www.cnlab.net
+"""
 import os
 import sys
 import signal
 import configuration
+import threading
+import time
 
 from servicecontext import ServiceContext
 from parkservice import ParkService
@@ -49,11 +55,19 @@ class BeanContext(ServiceContext):
         signal.signal(signal.SIGINT, sigint_handler)
         signal.signal(signal.SIGTERM, sigint_handler)
         pyro_thread.join()
+
     @classmethod
     def startWorker(cls, host, port, workerType, worker):
         pyro_thread = cls.startService(host, port, workerType, WorkService(worker))
         signal.signal(signal.SIGINT, sigint_handler)
         signal.signal(signal.SIGTERM, sigint_handler)
+        cls.getDefaultPark().createDomainNode("_worker_" + workerType, str(time.time()).replace(".", ""), host+":"+str(port),True)
+        try:
+            while True :
+                time.sleep(10)
+        except KeyboardInterrupt ,e :
+            sys.exit(0)
+
     @classmethod
     def getPark(cls, host, port, servers, serviceName):
         return ParkLocal(host, port, serviceName, servers)
@@ -63,7 +77,7 @@ class BeanContext(ServiceContext):
         servers = configuration.Conf.getParkServers()
         servs = servers.split(",")
         server = servs[0].split(":")
-        
+
         return cls.getPark(server[0], int(server[1]), servs, configuration.Conf.getParkServiceName())
     @classmethod
     def getWorkman(cls, host, port, workerType):

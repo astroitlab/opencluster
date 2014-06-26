@@ -32,7 +32,7 @@ class Conf(object):
 
     @classmethod
     def getAlwaysTryLeader(cls):
-        return cls.cf.get("park", "alwaysTryLeader")
+        return bool(cls.cf.get("park", "alwaysTryLeader")=="True")
 
     @classmethod
     def getSafeMemoryPerNode(cls):
@@ -52,7 +52,7 @@ class Conf(object):
 
     @classmethod
     def getStartWebapp(cls):
-        return bool(cls.cf.get("park", "startWebapp"))
+        return bool(cls.cf.get("park", "startWebapp")=="True")
 
     @classmethod
     def getMaxDelay(cls):

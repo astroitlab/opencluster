@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class ParkLeader(object):
     def __init__(self, host, port, serviceName, servers = None):
         self.master = False
-        self.alwaysTry = Conf.getAlwaysTryLeader().lower() == "true"
+        self.alwaysTry = Conf.getAlwaysTryLeader()
         self.serviceName = serviceName
         self.thisServer = "%s:%s" % (host, port)
         self.groupServers = servers
@@ -52,14 +52,16 @@ class ParkLeader(object):
         
         try :
             parkService = ServiceContext.getService(server[0], int(server[1]), self.serviceName)
+            if parkService :
+                parkService.askLeader()
         except LeaderError , le :
-            logger.error("electionLeader %s:%s----:%" % (server[0], server[1], le))
+            logger.error("electionLeader %s:%s----:%s" % (server[0], server[1], le))
             theOk = False
             leaderIndex = self.getLeaderIndex(le.getLeaderServer())
             parkService = self.electionLeader(-1, leaderIndex)
 
         except Exception , e :
-            logger.error("electionLeader %s:%s----:%" % (server[0], server[1], e))
+            logger.error("electionLeader %s:%s----:%s" % (server[0], server[1], e))
             theOk = False
             if begin != index :
                 if not self.alwaysTry and begin < 0: 
@@ -80,13 +82,13 @@ class ParkLeader(object):
             if parkService :
                 parkService.askLeader()
         except LeaderError , le :
-            logger.error("electionLeader %s:%s----:%" % (server[0], server[1], le))
+            logger.error("electionLeader %s:%s----:%s" % (server[0], server[1], le))
             theOk = False
             leaderIndex = self.getLeaderIndex(le.getLeaderServer())
             parkService = self.electionLeader(leaderIndex)
 
         except Exception , e :
-            logger.error("electionLeader %s:%s----:%" % (server[0], server[1], e))
+            logger.error("electionLeader %s:%s----:%s" % (server[0], server[1], e))
             theOk = False
             parkService = self.electionLeader(index + 1)        
         if theOk :

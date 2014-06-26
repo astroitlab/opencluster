@@ -27,8 +27,8 @@ class Worker(WorkerParallel):
         self.port = port
         self.workerType = workerType        
         BeanContext.startWorker(host, port, workerType, self)
-        ParkPatternExector.createWorkerTypeNode(workerType, host+":"+str(port))
-        
+        # ParkPatternExector.createWorkerTypeNode(workerType, host+":"+str(port))
+
     def waitWorkingByPark(self, workerType):
         ob = ParkPatternExector.createWorkerTypeNode(workerType, "wk_pk")
         while True :
