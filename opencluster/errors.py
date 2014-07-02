@@ -34,8 +34,6 @@ class ClosetoOverError(Exception):
     def errorPrint(self) :
         return "total memory:%.2fM,free :%.2fM" % (self.tm/1000000l,self.fm/1000000l)
 
-
-
 class RecallError(Exception):
     """
     A call could not be completed successfully,then a recall will be done again.
