@@ -19,24 +19,20 @@ class ServiceError(Exception):
 class CommunicateError(CommunicationError) :
     pass
 
-class ClosetoOverError(ServiceError):
+class ClosetoOverError(Exception):
     """the errors related to memory used"""
-    def __init__(self, tm, fm):
-        super(ClosetoOverError, self).__init__("The capacity close to out of memory, please clear out some data!")
-        self.tm = tm
-        self.fm = fm
-    @staticmethod
-    def checkMemCapacity():
+    @classmethod
+    def checkMemCapacity(cls):
         phymem = psutil.phymem_usage()
         safeMemoryPer = conf.Conf.getSafeMemoryPerNode()
-        tm = phymem.total
-        fm = phymem.free
-
         if phymem.percent > safeMemoryPer :
-            raise ClosetoOverError(tm, fm)
+            e = ClosetoOverError("The capacity close to out of memory, please clear out some data!  used {0}% > {1}%".format(phymem.percent,safeMemoryPer))
+            e.tm = float(phymem.total)
+            e.fm = float(phymem.free)
+            raise e
         return True
     def errorPrint(self) :
-        return "total memory:%s,free :%s" % (self.tm,self.fm)
+        return "total memory:%.2fM,free :%.2fM" % (self.tm/1000000l,self.fm/1000000l)
 
 
 

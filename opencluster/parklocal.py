@@ -53,7 +53,7 @@ class ParkLocal(object):
                     if self.park :
                         ob = self.__put(domain,node,obj,isHearBeat,count+1)
                 if isinstance(e,ClosetoOverError) :
-                    logger.error("put error:%s" % ClosetoOverError(e).errorPrint())
+                    logger.error("put error:%s" % e.errorPrint())
         return ob
 
     def update(self, domain, node, obj,count=0):
@@ -72,7 +72,7 @@ class ParkLocal(object):
                     if self.park :
                         ob = self.update(domain,node,obj,count+1)
                 if isinstance(e,ClosetoOverError) :
-                    logger.error("update error:%s" % ClosetoOverError(e).errorPrint())
+                    logger.error("update error:%s" % e.errorPrint())
 
         return ob
     
@@ -90,7 +90,7 @@ class ParkLocal(object):
                     if self.park :
                         ob = self.getNodes(domain,count+1)
                 if isinstance(e,ClosetoOverError) :
-                    logger.error("get Nodes error:%s" % ClosetoOverError(e).errorPrint())
+                    logger.error("get Nodes error:%s" % e.errorPrint())
 
         return objList
 
@@ -146,7 +146,7 @@ class ParkLocal(object):
                     if self.park :
                         ob = self.getNodesLastest(domain,oldObjList,count+1)
                 if isinstance(e,ClosetoOverError) :
-                    logger.error("getNodesLastest error:%s" % ClosetoOverError(e).errorPrint())
+                    logger.error("getNodesLastest error:%s" % e.errorPrint())
         return obList
 
     def delete(self, domain, node,count=0):
@@ -177,7 +177,7 @@ class ParkLocal(object):
                     if self.park :
                         ob = self.deleteDomain(domain,count+1)
                 if isinstance(e,ClosetoOverError) :
-                    logger.error("deleteDomain Nodes error:%s" % ClosetoOverError(e).errorPrint())
+                    logger.error("deleteDomain Nodes error:%s" % e.errorPrint())
         return obList
 
     def setDeletable(self, domain,obj=None):

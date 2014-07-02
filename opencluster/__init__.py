@@ -16,4 +16,4 @@ def _checkRequirePackage():
 _checkRequirePackage()
 del _checkRequirePackage
 
-__all__ = ['asyncexector', 'beancontext', 'conf','ctorlocal','errors','hbdaemon','item','meta',' parallelservice','parkleader','parklocal','parkpatternexector','parkservice','poolexector','servicecontext','threadpool','worker','workman','workservice']
+__all__ = ['asyncexector', 'beancontext', 'configuration','contractor','contractorservice','errors','hbdaemon','item','meta','parallelservice','parkleader','parklocal','parkpatternexector','parkservice','servicecontext','worker','workman','workerparallel','workservice']

@@ -49,6 +49,7 @@ class ParkService(object):
         
     def create(self, domain, node, obj, sessionId, isHeartBeat):
         ClosetoOverError.checkMemCapacity()
+
         objv = None
         if domain and node :
             #lock

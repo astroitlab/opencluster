@@ -17,7 +17,7 @@ class HbDaemon :
     pt = conf.Conf.getHeartBeat()
     dt = conf.Conf.getMaxDelay()
     gt = pt*2
-    vs = "\u3001"
+    vs = "|"
         
     @classmethod
     def runPutTask(cls, park, parkLeader, domain, node, sessionId):

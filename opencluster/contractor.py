@@ -20,10 +20,10 @@ class Contractor(WorkerParallel) :
     def giveTask(self,inHouse):
         pass
 
-    def giveChainTask(self,inHouse,chainProcess):
+    def giveChainTask(self,inHouse):
         outHouse = self.giveTask(inHouse)
-        if chainProcess and self.ctor :
-            return self.ctor.giveChainTask(outHouse,chainProcess)
+        if self.ctor :
+            return self.ctor.giveChainTask(outHouse)
         return  outHouse
 
     def doProject(self,inHouse):

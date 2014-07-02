@@ -42,9 +42,6 @@ class Workman(object) :
         if Conf.getWorkerServiceFlag()==0 and self.rx.tryRecall(inHouse)==-1 :
             return None
 
-        # PoolExector.doTask(self.doTaskProxy,[inHouse,outHouse],None,t)
-        # PoolExector.doTask(self.interrupt,None,None)
-
         try :
             wh = self.workerService.doTask(inHouse)
             if wh :
