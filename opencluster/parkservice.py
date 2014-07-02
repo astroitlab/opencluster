@@ -5,7 +5,6 @@ from hbdaemon import *
 from item import *
 from parkleader import ParkLeader
 
-
 logger = logging.getLogger(__name__)
 
 class ParkService(object):
