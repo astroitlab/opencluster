@@ -1,4 +1,7 @@
+import sys
 
+
+from configuration import Conf
 from workerparallel import WorkerParallel
 from beancontext import BeanContext
 from parkpatternexector import ParkPatternExector
@@ -106,3 +109,12 @@ class Worker(WorkerParallel):
     def interrupted(self,  interrupted) :
         self._interrupted = interrupted
         
+if __name__ == "__main__" :
+    serverStr = Conf.getWorkerServers()
+    server = serverStr.split(":")
+
+    if len(sys.argv) != 2:
+        print "no worker type specified\n usage:python worker.py [WorkerType]"
+        exit(0)
+    wk = Worker()
+    wk.waitWorking(sys.argv[1],server[0],int(server[1]))

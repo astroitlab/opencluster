@@ -1,4 +1,5 @@
 import logging
+import threading
 
 from configuration import Conf
 
@@ -12,23 +13,24 @@ class WorkService(object):
         self.software = ['numpy','scipy', 'matplotlib']
         self.hardware = {'cpu':0, 'mem':0}
         self.worker = worker
+        self.condition = threading.Condition()
 
     def setWorker(self, worker):
-        self.worker.host = worker.host
-        self.worker.port = worker.port
-        self.worker.workerType = worker.workerType
+        worker.host = self.worker.host
+        worker.port = self.worker.port
+        worker.workerType = self.worker.workerType
         
         self.worker = worker
     def doTask(self, inHouse):
         wh = None
         try :
             if Conf.getWorkerServiceFlag() == "0" :
-                self.worker.interrupted(False)
+                if self.condition.acquire() :
+                    self.worker.interrupted(False)
             wh = self.worker.doTask(inHouse)
         finally :
             if Conf.getWorkerServiceFlag() == "0" :
-                #unlock
-                pass
+                self.condition.release()
         return wh
     
     def stopTask(self):

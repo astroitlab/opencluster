@@ -82,6 +82,9 @@ class BeanContext(ServiceContext):
     @classmethod
     def getWorkman(cls, host, port, workerType):
         return Workman(host, port, workerType)
+    @classmethod
+    def getWorkerLocal(cls,domainNodeKey):
+        return WorkerLocal(domainNodeKey)
 
     @classmethod
     def startInetServer(cls):

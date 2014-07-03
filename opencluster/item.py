@@ -253,6 +253,15 @@ class ParkObjValue(ObjValue):
                             keys.append(keyArr)
         return keys
 
+class ParkPatternBean(object) :
+    def __init__(self,domain,node,inHouse,outHouse,rx):
+        self.domain = domain
+        self.node = node
+        self.inHouse = inHouse
+        self.outHouse = outHouse
+        self.rx = rx#RecallException
+        self.thisVersion = None #ObjectBean
+
 if __name__ == "__main__" :
     obj = ParkObjValue()
     obj["dd"] = "dxx"

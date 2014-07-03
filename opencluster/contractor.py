@@ -52,7 +52,7 @@ class Contractor(WorkerParallel) :
         oblist = ParkPatternExector.getWorkerTypeList(workerType)
         wklist = []
         for ob in oblist :
-            wklist.append(BeanContext.getWorkman(ob.getName()))
+            wklist.append(BeanContext.getWorkerLocal(ob.getName()))
 
         return  wklist
 
