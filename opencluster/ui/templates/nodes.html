@@ -1,0 +1,82 @@
+$def with (nodes,services,workers)
+<div class="page-header">
+    <h3><i class="fa fa-cogs"></i>Nodes</h3>
+</div>
+<div class="box" style="min-height: 300px;">
+
+    <div class="panel panel-success">
+        <div class="panel-body">
+            <div class="col-md-4">Number of Nodes：  <span class="label label-success">$len(nodes)</span></div>
+            <div class="col-md-4">Number of Service Started： <span class="label label-success">$len(services)</span></div>
+            <div class="col-md-4">Number of Worker Started： <span class="label label-success">$len(workers)</span></div>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-hover table-condensed">
+        <thead>
+            <tr>
+                <th width="100">Node</th>
+                <th>CPU</th>
+                <th width="200">Memory</th>
+                <th width="200">Disk</th>
+            </tr>
+        </thead>
+        <tbody>
+        $for v in nodes:
+            <tr>
+                <td rowspan="2">
+                    <p class="text-center">$v.host</p>
+                    <p class="text-center"><a class="btn btn-primary btn-sm" href='node/$"".join(v.host.split("."))'>Services</a></p>
+                    <p class="text-center"><a class="btn btn-primary btn-sm" href='node/$"".join(v.host.split("."))'>Workers</a></p>
+                </td>
+                <td>
+                    <p class="text-center"><strong>$v.cpuCount</strong> Cores</p>
+                    <div class="progress">
+                        $if v.cpuTotalPercent > 50 :
+                            <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="$v.cpuTotalPercent" aria-valuemin="0" aria-valuemax="100" style="width: $v.cpuTotalPercent%">
+                        $else :
+                            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="$v.cpuTotalPercent" aria-valuemin="0" aria-valuemax="100" style="width: $v.cpuTotalPercent%">
+                        $v.cpuTotalPercent% Used
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <p class="text-center"><strong>$v.totalMemory</strong> MB</p>
+                    <div class="progress">
+                        $if v.percentMemory > 50 :
+                            <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="$v.percentMemory" aria-valuemin="0" aria-valuemax="100" style="width: $v.percentMemory%">
+                        $else :
+                            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="$v.percentMemory" aria-valuemin="0" aria-valuemax="100" style="width: $v.percentMemory%">
+                        $v.percentMemory% Used
+                        </div>
+                    </div>
+                </td>
+                <td><p class="text-center"><strong>$v.totalDisk</strong> MB</p>
+                    <div class="progress">
+                        $if v.percentDisk > 50 :
+                            <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="$v.percentDisk" aria-valuemin="0" aria-valuemax="100" style="width: $v.percentDisk%">
+                        $else :
+                            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="$v.percentDisk" aria-valuemin="0" aria-valuemax="100" style="width: $v.percentDisk%">
+                        $v.percentDisk% Used
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div>Available Worker Type：
+                        $" , ".join(v.availWorkers)
+                    </div>
+                    <div>Available Service Type：
+                        $" , ".join(v.availServices)
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript">
+$$(document).ready(function() {
+	$$("ul li.mi-nodes").addClass('active');
+});
+</script>

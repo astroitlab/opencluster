@@ -1,0 +1,88 @@
+$def with (nodes,jobs,services,workers,dataCPU,dataMem,totalCPU,totalMemory)
+<div class="page-header">
+    <h3><i class="fa fa-dashboard"></i>Dashboard</h3>
+</div>
+<div class="box" style="min-height: 300px;">
+        <div class="col-md-4">
+            <div class="list-group">
+                <a class="list-group-item active">Currently, the cluster contains:</a>
+                <a class="list-group-item">Nodes: <span class="badge">$len(nodes)</span></a>
+                <a class="list-group-item">Services: <span class="badge">$len(services)</span></a>
+                <a class="list-group-item">Workers: <span class="badge">$len(workers)</span></a>
+                <a class="list-group-item">Jobs: <span class="badge">$len(jobs)</span></a>
+                <a class="list-group-item">Total CPUs: <span class="badge">$totalCPU cores</span></a>
+                <a class="list-group-item">Total Memory: <span class="badge">$totalMemory GB</span></a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div style="width: 300px;">
+                <canvas id="chartCPU" width="300" height="300"></canvas>
+                <p class="text-center"><strong>CPU</strong></p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div style="width: 300px;">
+                <canvas id="chartMem" width="300" height="300"></canvas>
+                <p class="text-center"><strong>Memory</strong></p>
+            </div>
+        </div>
+
+</div>
+<div class="page-header">
+    <h3><i class="fa fa-truck"></i>Running Jobs</h3>
+</div>
+<div class="row" style="min-height: 100px;">
+    <div class="col-md-12">
+    <table class="table table-bordered table-hover table-condensed">
+        <thead>
+            <tr>
+                <td>Name</td>
+                <td>Mode</td>
+                <td>Created Time</td>
+                <td>Finished Time</td>
+                <td>Status</td>
+            </tr>
+        </thead>
+        <tbody>
+        $for v in jobs:
+            $if not v.obj.stopped :
+                <tr>
+                    <td>
+                        <p class="text-center">$v.obj.name</p>
+                    </td>
+                    <td>
+                        <p class="text-center">$v.obj.mode</p>
+                    </td>
+                    <td>
+                        <p class="text-center">$v.obj.startTime</p>
+                    </td>
+                    <td>
+                        <p class="text-center">$v.obj.endTime</p>
+                    </td>
+                    <td>
+                        <p class="bg-info"><span>($v.obj.finished_count/$v.obj.fail_count/$v.obj.totalNum)</span><span>Running</span></p>
+                    </td>
+                </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+<script type="text/javascript">
+var dataCPUArr = [];
+$for v in dataCPU :
+    dataCPUArr.push({value: $v["value"],color:'$v["color"]',label:'$v["label"]'});
+var dataMemArr = [];
+$for v in dataMem :
+    dataMemArr.push({value: $v["value"],color:'$v["color"]',label:'$v["label"]'});
+
+$$(document).ready(function() {
+	$$("ul li.mi-index").addClass('active');
+
+    var ctxCPU = document.getElementById("chartCPU").getContext("2d");
+    var cpuChart = new Chart(ctxCPU).Pie(dataCPUArr)
+
+
+    var ctxMem = document.getElementById("chartMem").getContext("2d");
+    var memChart = new Chart(ctxMem).Pie(dataMemArr)
+});
+</script>

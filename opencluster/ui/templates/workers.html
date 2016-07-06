@@ -1,0 +1,51 @@
+$def with (nodes,workers,workerTypes,time)
+<div class="page-header">
+    <h3><i class="fa fa-sitemap"></i>Workers</h3>
+</div>
+<div class="box" style="min-height: 300px;">
+    <div class="panel panel-success">
+        <div class="panel-body">
+            <div class="col-md-4">Number of Worker Type： <span class="label label-success">$len(workerTypes)</span></div>
+            <div class="col-md-4">Number of Worker Started： <span class="label label-success">$len(workers)</span></div>
+            <div class="col-md-4"></div>
+        </div>
+    </div>
+
+$for wt in workerTypes:
+    <h4><i class="fa fa-group"></i>Type：$wt.name ($wt.obj)</h4>
+
+    <table class="table table-bordered table-hover table-condensed">
+        <thead>
+            <tr>
+                <th width="100">Worker</th>
+                <th>Address</th>
+                <th width="200">Created Time</th>
+                <th width="200">Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+        $for worker in workers:
+            $if worker.getDomain() == wt.name:
+                <tr>
+                    <td>
+                        <p class="text-center">$worker.name</p>
+                    </td>
+                    <td>
+                          $worker.obj
+
+                    </td>
+                    <td>
+                          $time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(worker.createTime))
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript">
+$$(document).ready(function() {
+	$$("ul li.mi-workers").addClass('active');
+});
+</script>
