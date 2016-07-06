@@ -1,55 +1,55 @@
-import sys
+import datetime
+import random
+import logging
 
+from opencluster.configuration import setLogger
+from opencluster.workerparallel import WorkerParallel
+from opencluster.factory import FactoryContext
+from opencluster.util import port_opened
+from opencluster.factorypatternexector import FactoryPatternExector
 
-from configuration import Conf
-from workerparallel import WorkerParallel
-from beancontext import BeanContext
-from parkpatternexector import ParkPatternExector
-
+logger = logging.getLogger(__file__)
 class Worker(WorkerParallel):
-    
-    software = ['numpy','scipy']
-    hardware = {'cpu':0, 'mem':0}
-    
-    def __init__(self):
+    def __init__(self,workerType, level=logging.DEBUG):
         super(Worker,self).__init__()
         self.host = None
         self.port = None
-        self.workerType = None
+        self.workerType = workerType
         self._interrupted = False
-    
-    def setMigrantWorker(self, mw):
-        pass
-    def doTask(self, inhouse):
+        self.level = level
+        j = str(random.randint(0, 9000000)).ljust(7,'0')
+        workerId = "%s%s" % (datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"),j)
+        setLogger(self.workerType,workerId,self.level)
+
+    def doTask(self, task):
         pass
     def stopTask(self):
         pass
     
-    def waitWorkingByService(self, host, port, workerType) :
+    def waitWorkingByService(self, host, port=None) :
         self.host = host
         self.port = port
-        self.workerType = workerType        
-        BeanContext.startWorker(host, port, workerType, self)
-        # ParkPatternExector.createWorkerTypeNode(workerType, host+":"+str(port))
 
-    def waitWorkingByPark(self, workerType):
-        ob = ParkPatternExector.createWorkerTypeNode(workerType, "wk_pk")
-        while True :
-            lastestOb = ParkPatternExector.getLastestObjectBean(ob)
-            whouse = self.doTask(lastestOb)
-            ob = ParkPatternExector.updateObjectBean(lastestOb, whouse)
-        
+        if self.host is None:
+            self.host = "127.0.0.1"
+
+        if self.port is None:
+            self.port = random.randint(30000, 40000)
+
+        while port_opened(self.host, self.port) :
+            self.port = random.randint(30000, 40000)
+
+        FactoryContext.startWorker(self, self.workerType, self.host, self.port)
+
     def getWorkerIndex(self, index, workerType=None):
         if not workerType :
             return self.getWorkerIndex(index, self.workerType)
             
-        wsList = self.getWorkersService(workerType)
-        if index >=0 and index < len(wsList) :
+        wsList = self.getWorkerList(workerType)
+        if index >= 0 and index < len(wsList) :
             wsInfo = wsList[index]
-            return BeanContext.getWorkman(wsInfo[0], int(wsInfo[1]), wsInfo[2])
-        
-    
-    
+            return FactoryContext.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2])
+
     def getWorkerAll(self, workerType=None):
         if not workerType : 
             return self.getWorkers(None, 0, self.workerType)
@@ -57,19 +57,18 @@ class Worker(WorkerParallel):
     
     def getWorkers(self, host, port, workerType):
         wkList = []
-        if WorkerParallel.computeModeFlag == 0 :
-            wsList = self.getWorkersService(workerType)
-            i = 0
-            for wsInfo in wsList :
-                if self.host != wsInfo[0] and self.port != int(wsInfo[1]) :
-                    wkList.append(BeanContext.getWorkman(wsInfo[0], int(wsInfo[1]), wsInfo[2]))
-                else :
-                    self.selfIndex = i
-                i = i + 1    
+        wsList = self.getWorkerList(workerType)
+        i = 0
+        for wsInfo in wsList :
+            if self.host != wsInfo[0] and self.port != int(wsInfo[1]) :
+                wkList.append(FactoryContext.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2]))
+            else :
+                self.selfIndex = i
+            i = i + 1
         return wkList
     def getSelfIndex(self):
         if self.selfIndex == -1 :
-            wsList = self.getWorkersService(self.workerType)
+            wsList = self.getWorkerList(self.workerType)
             i = 0
             for wsInfo in wsList :
                 if self.host == wsInfo[0] and self.port == int(wsInfo[1]) :
@@ -88,18 +87,15 @@ class Worker(WorkerParallel):
         
         if self.host == host and self.port == port :
             return None
-        wsList = self.getWorkersService(workerType)
+        wsList = self.getWorkerList(workerType)
         for wsInfo in wsList :
             if self.host == wsInfo[0] and self.port == int(wsInfo[1]) :
-                return BeanContext.getWorkman(wsInfo[0], int(wsInfo[1]), wsInfo[2])
+                return FactoryContext.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2])
         return None
         
-    def receive(self, inhouse):
+    def receive(self, task):
         return True
-        
-    def receiveMaterials(self, inhouse):
-        return self.receive(inhouse)
-        
+
     def setSelfIndex(self, i):
         self.selfIndex = i
         
@@ -108,13 +104,31 @@ class Worker(WorkerParallel):
     
     def interrupted(self,  interrupted) :
         self._interrupted = interrupted
-        
-if __name__ == "__main__" :
-    serverStr = Conf.getWorkerServers()
-    server = serverStr.split(":")
 
-    if len(sys.argv) != 2:
-        print "no worker type specified\n usage:python worker.py [WorkerType]"
-        exit(0)
-    wk = Worker()
-    wk.waitWorking(sys.argv[1],server[0],int(server[1]))
+    def getServices(self,serviceName, asynchronous = False, worker = None):
+        wslist = self.getServiceList(serviceName)
+        wklist = []
+        for wsinfo in wslist :
+            wklist.append(FactoryContext.getWorker(wsinfo[0],int(wsinfo[1]),wsinfo[2],asynchronous))
+
+        return  wklist
+
+    def getWorkerList(self, workerType, host=None, port=None):
+        obList = FactoryPatternExector.getWorkerTypeList(workerType);
+        wsList = []
+        if not obList is None :
+            for obj in obList :
+                hostPort = str(obj.obj).split(":")
+                if hostPort[0] != host or int(hostPort[1]) != port:
+                    wsList.append([hostPort[0], hostPort[1], workerType])
+        return wsList
+
+    def getServiceList(self, serviceName, host=None, port=None):
+        obList = FactoryPatternExector.getServiceNameList(serviceName);
+        wsList = []
+        if not obList is None :
+            for obj in obList :
+                hostPort = str(obj.obj).split(":")
+                if hostPort[0] != host or int(hostPort[1]) != port:
+                    wsList.append([hostPort[0], hostPort[1], serviceName])
+        return wsList

@@ -23,7 +23,7 @@ class ClosetoOverError(Exception):
     """the errors related to memory used"""
     @classmethod
     def checkMemCapacity(cls):
-        phymem = psutil.phymem_usage()
+        phymem = psutil.virtual_memory()
         safeMemoryPer = conf.Conf.getSafeMemoryPerNode()
         if phymem.percent > safeMemoryPer :
             e = ClosetoOverError("The capacity close to out of memory, please clear out some data!  used {0}% > {1}%".format(phymem.percent,safeMemoryPer))
@@ -49,7 +49,7 @@ class RecallError(Exception):
             raise self
         return self.recall
 
-    def tryRecall(self,inHouse):
+    def tryRecall(self,task):
         try :
             if self.checkRecall() :
                 self.setRecall(True)
@@ -62,17 +62,28 @@ class LeaderError(Exception):
     """
     the error of election of a leader in a park.
     """
-    def __init__(self):
-        super(LeaderError, self).__init__()
-    def setServer(self, thisServer, leaderServer):
+    def __init__(self, thisServer, leaderServer):
+        super(LeaderError, self).__init__("Leader Error")
         self.thisServer = thisServer
-        self.leaderServer = leaderServer;
+        self.leaderServer = leaderServer
     def getLeaderServer(self):
         return self.leaderServer
 
 
-class FttpError(Exception):
-    """ fttp operation related errors."""
-    pass
+class DftpError(Exception):
+    """ dftp operation related errors."""
+
+    @classmethod
+    def getURI(cls,dftpPath,fileName):
+
+        if not dftpPath.startswith("dftp:"):
+            raise DftpError("Illegal protocol character in %s"%dftpPath)
+
+        if fileName is not None:
+            return dftpPath + "/" + fileName
+
+        return dftpPath
+
+
 
 

@@ -1,0 +1,45 @@
+$def with (jobs)
+<div class="page-header">
+    <h3><i class="fa fa-truck"></i>Jobs</h3>
+</div>
+<div class="box" style="min-height: 300px;">
+    <table class="table table-bordered table-hover table-condensed">
+        <thead>
+            <tr>
+                <td>Name</td>
+                <td>Mode</td>
+                <td>Created Time</td>
+                <td>Last Update Time</td>
+                <td>Status</td>
+            </tr>
+        </thead>
+        <tbody>
+        $for v in jobs:
+            <tr>
+                <td>
+                    <p class="text-center">$v.name</p>
+                </td>
+                <td>
+                    <p class="text-center">$v.mode</p>
+                </td>
+                <td>
+                    <p class="text-center">$v.startTime</p>
+                </td>
+                <td>
+                    <p class="text-center">$v.endTime</p>
+                </td>
+                <td>
+                    $if v.stopped :
+                        <p class="bg-success"><span>($v.finished_count/$v.fail_count/$v.totalNum)</span><span>Finished</span></p>
+                    $else :
+                        <p class="bg-info"><span>($v.finished_count/$v.fail_count/$v.totalNum)</span><span>Running</span></p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript">
+$$(document).ready(function() {
+	$$("ul li.mi-jobs").addClass('active');
+});
+</script>

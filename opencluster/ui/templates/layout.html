@@ -1,0 +1,78 @@
+$def with (content)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>$title</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="shortcut icon" href="/res/favicon.ico" />
+    <link href="/res/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <link href="/res/bootstrap/font-awesome/css/font-awesome.min.css" type="text/css" rel="stylesheet" />
+    <link href="/res/default.css" type="text/css" rel="stylesheet" />
+    <script src="/res/jquery/jquery-2.1.0.min.js" type="text/javascript"></script>
+    <script src="/res/bootstrap/3.0.3/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/res/bootstrap/chart/Chart.min.js" type="text/javascript"></script>
+    <script src="/res/bootstrap/html5shiv.js"></script>
+    <script src="/res/bootstrap/respond.min.js"></script>
+</head>
+<body>
+
+<div class="header navbar navbar-inverse navbar-fixed-top bs-docs-nav" role="banner">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <span class="fa-stack pull-left fa-logo fa-lg">
+                <i class="fa fa-cloud fa-stack-1x"></i>
+                <i class="fa fa-circle-o fa-stack-2x"></i>
+            </span>
+            <a class="navbar-brand" href="/">OpenCluster</a>
+        </div>
+        <div class="collapse navbar-collapse bs-navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li class="mi-index"><a href="/"><i class="fa fa-dashboard"></i>DashBoard</a></li>
+                <li class="mi-jobs"><a href="/jobs"><i class="fa fa-truck"></i>Jobs</a></li>
+                <li class="mi-nodes"><a href="/nodes"><i class="fa fa-cogs"></i>Nodes</a></li>
+                <li class="mi-services"><a href="/services"><i class="fa fa-gift"></i>Services</a></li>
+                <li class="mi-workers"><a href="/workers"><i class="fa fa-sitemap"></i>Workers</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-about"></i>About
+                        <i class="caret"></i>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li class="mi-contact"><a href="/about/about">About</a></li>
+                        <li class="mi-contact"><a href="/about/contact">Contact</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    $:content
+</div>
+
+<footer class="bs-footer">
+    <div class="container">
+        <p>&copy2014&nbsp;Computer Technology Application Key Lab of Yunnan Province</p>
+        <ul class="footer-links">
+            <li><small>Current Version:v0.0.4</small></li>
+			<li class="muted">&middot;</li>
+			<li><a href="#">Docs</a></li>
+			<li class="muted">&middot;</li>
+            <li><a href="#">Blog</a></li>
+			<li class="muted">&middot;</li>
+            <li><a href="#">Issues</a></li>
+        </ul>
+    </div>
+</footer>
+
+</body>
+</html>

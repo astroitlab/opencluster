@@ -1,8 +1,6 @@
 import threading
 import logging
 import time
-
-import errors
 import Pyro4
 import configuration as conf
 
@@ -13,63 +11,66 @@ class HbDaemon :
     putTask = None
     getTask = None
     clrTask = None
-    
+
     pt = conf.Conf.getHeartBeat()
     dt = conf.Conf.getMaxDelay()
     gt = pt*2
     vs = "|"
         
     @classmethod
-    def runPutTask(cls, park, parkLeader, domain, node, sessionId):
+    def runPutTask(cls, factory, factoryLeader, domain, node, obj, sessionId):
         if HbDaemon.putTask is None :
             logger.info("heartbeat runPutTask")
-            HbDaemon.putTask = PutHbTask(park,parkLeader,domain,node,sessionId,HbDaemon.pt)#second
+            HbDaemon.putTask = PutHbTask(factory,factoryLeader,domain,node,obj,sessionId,HbDaemon.pt)#second
             HbDaemon.putTask.start()
 
     @classmethod
-    def runGetTask(cls, hbinfo, park):
+    def runGetTask(cls, hbinfo, factory):
         if HbDaemon.getTask is None :
             logger.info("heartbeat runGetTask")
-            HbDaemon.getTask = GetHbTask(park,hbinfo,HbDaemon.pt)#second
+            HbDaemon.getTask = GetHbTask(factory,hbinfo,HbDaemon.pt)#second
             HbDaemon.getTask.start()
 
     @classmethod
-    def runClearTask(cls, park):
+    def runClearTask(cls, factory):
         if HbDaemon.clrTask is None :
             cpd = int(conf.Conf.getClearPeriod())
             if cpd > 0 :
                 logger.info("Run ClearTask")
                 exp = int(conf.Conf.getExpiration())
-                HbDaemon.clrTask = ClearTask(park,exp,cpd)#second
+                HbDaemon.clrTask = ClearTask(factory,exp,cpd)#second
                 HbDaemon.clrTask.start()
 
 class PutHbTask(threading.Thread) :
-    def __init__(self,parkService,parkLeader,domain,node,sessionId,interval):
+    def __init__(self,factoryService,factoryLeader,domain,node,obj,sessionId,interval):
         super(PutHbTask,self).__init__()
-        self.__parkService = parkService
-        self.__parkLeader = parkLeader
+        self.__factoryService = factoryService
+        self.__factoryLeader = factoryLeader
         self.__domain = domain
         self.__node = node
+        self.__obj = obj
         self.__sessionId = sessionId
         self.__putList = []
         self.finished = threading.Event()
         self.interval = interval
-        self.__putList.append(domain+HbDaemon.vs+node)
+
     def run(self):
         while True :
             try:
                 self.finished.wait(self.interval)
+
                 if not self.finished.is_set():
-                    self.__parkService.heartbeat(self.__putList,self.__sessionId)
+                    if not self.__factoryService.heartbeat(self.__domain+HbDaemon.vs+self.__node,self.__sessionId):
+                        self.__factoryService.create(self.__domain,self.__node,self.__obj,self.__sessionId,True);
             except Exception,e :
                 logger.error(e)
                 if isinstance(e, Pyro4.errors.CommunicationError) :
-                    self.__parkService = self.__parkLeader.getNextLeader()
+                    self.__factoryService = self.__factoryLeader.getNextLeader()
 
 class GetHbTask(threading.Thread) :
-    def __init__(self,parkService,hbinfo,interval):
+    def __init__(self,factoryService,hbinfo,interval):
         super(GetHbTask,self).__init__()
-        self.__parkService = parkService
+        self.__factoryService = factoryService
         self.__hbinfo = hbinfo
         self.finished = threading.Event()
         self.interval = interval
@@ -90,20 +91,18 @@ class GetHbTask(threading.Thread) :
                             logger.warning("%s Slow and week heartbeat" % key)
                         if t > HbDaemon.gt + HbDaemon.dt :
                             if HbDaemon.dt > 0 :
-                                logger.warning("Dead %s has exceeded max delaytime and is regarded as dead by park." % key)
+                                logger.warning("Dead %s has exceeded max delaytime and will be removed by factory." % key)
                             self.__hbinfo.remove(key)
 
                             keys = key.split(HbDaemon.vs)
-                            print keys
-                            self.__parkService.delete(keys[0],keys[1])
-                            logger.info("hbinfo:%s",self.__hbinfo)
+                            self.__factoryService.delete(keys[0],keys[1])
 
 
 class ClearTask(threading.Thread) :
-    def __init__(self,parkService,expl,interval):
+    def __init__(self,factoryService,expl,interval):
         super(ClearTask,self).__init__()
-        self.__parkService = parkService
-        self.__expl = expl*3600
+        self.__factoryService = factoryService
+        self.__expl = expl
         self.finished = threading.Event()
         self.interval = interval
     def run(self):
@@ -111,13 +110,14 @@ class ClearTask(threading.Thread) :
             self.finished.wait(self.interval)
 
             if not self.finished.is_set():
-                pov = self.__parkService.getTheParkInfo()
-                keyArray = pov.getParkInfoExp(self.__expl)
+                pov = self.__factoryService.getTheFactoryInfo()
+
+                keyArray = pov.getFactoryInfoExp(self.__expl)
 
                 if len(keyArray) > 0 :
                     logger.info("Get some expiration data and save for backup...")
                     #to do...
                 for keys in keyArray :
-                    logger.info("[Clear],[Expiration]:%,%s" (pov.getDomainNodekey(keys[0],keys[1])))
-                    self.__parkService.delete(keys[0],keys[1])
+                    logger.info("[Clear],[Expiration]:%s" % (pov.getDomainNodekey(keys[0],keys[1])))
+                    self.__factoryService.delete(keys[0],keys[1])
             # self.finished.set()

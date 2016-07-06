@@ -1,5 +1,6 @@
-import sys
+import sys,os
 
+sys.path.extend([os.path.join(os.path.abspath(os.path.dirname(__file__)),'..')])
 if sys.version_info < (2, 6):
     import warnings
     warnings.warn("This version is unsupported on Python versions older than 2.6", ImportWarning)
@@ -16,4 +17,6 @@ def _checkRequirePackage():
 _checkRequirePackage()
 del _checkRequirePackage
 
-__all__ = ['asyncexector', 'beancontext', 'configuration','contractor','contractorservice','errors','hbdaemon','item','meta','parallelservice','parkleader','parklocal','parkpatternexector','parkservice','servicecontext','worker','workman','workerparallel','workservice']
+__all__ = ['asyncexector', 'configuration','errors','executor','factory', 'factoryleader','factorylocal','factorypatternexector','factoryservice','hbdaemon','item','job','manager','meta','node','nodedaemon','process','service','schedule','serialize','threadpool','util','servicecontext','worker','workerlocal','workerparallel','workerservice']
+
+from opencluster.item import Task

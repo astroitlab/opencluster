@@ -1,0 +1,80 @@
+$def with (node,services,workers)
+<div class="page-header">
+    <h3><i class="fa fa-cogs"></i>Node</h3>
+    <em>$node.host</em>
+</div>
+<div class="box" style="min-height: 300px;">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">Overview</div>
+                <div class="panel-body">
+                    <table>
+                        <tr><th>Host：</th><td>$node.host</td></tr>
+                        <tr><th>Boot Time：</th><td>$node.startTime</td></tr>
+                        <tr><th>Disk：</th><td>$node.totalDisk M($node.percentDisk% Used)</td></tr>
+                        <tr><th>Memory：</th><td>$node.totalMemory M($node.percentMemory% Used)</td></tr>
+                        <tr><th>CPUs：</th><td>$node.cpuCount Cores, ($node.cpuTotalPercent% Used)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">Available WorkerType</div>
+                <div class="panel-body">
+                    <table cellpadding="5">
+                        $for aWorker in node.availWorkers
+                            <tr><th width="160">$aWorker</th><td>
+                                <a href='/nodeWorker?workerType=$aWorker&host=$"".join(node.host.split("."))&action=start' class="btn btn-success btn-xs">New Instance</a>
+                                <a href='/nodeWorker?workerType=$aWorker&host=$"".join(node.host.split("."))&action=stopAll' class="btn btn-danger btn-xs">Stop All</a>
+                            </td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">Available ServiceType</div>
+                <div class="panel-body">
+                    <table cellpadding="5">
+                        $for aService in node.availServices
+                            <tr><th width="160">$aService</th><td>
+                                <a href='/nodeService?serviceType=$aService&host=$"".join(node.host.split("."))&action=start' class="btn btn-success btn-xs">New Instance</a>
+                                <a href='/nodeService?serviceType=$aService&host=$"".join(node.host.split("."))&action=stopAll' class="btn btn-danger btn-xs">Stop All</a>
+                            </td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Workers Started($len(workers))</div>
+                <div class="panel-body">
+                    <table cellpadding="5">
+                        $for worker in workers :
+                            <tr><th width="360">$worker.name</th><td><a href='/nodeWorker?workerType=$worker.name&host=$"".join(node.host.split("."))&action=stop' class="btn btn-danger btn-xs">Stop</a></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+       <div class="col-md-6">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Services Started($len(services))</div>
+                <div class="panel-body">
+                    <table cellpadding="5">
+                        $for service in services :
+                            <tr><th width="360">$service.name</th><td><a href='/nodeService?serviceType=$service.name&host=$"".join(node.host.split("."))&action=stop' class="btn btn-danger btn-xs">Stop</a></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+$$(document).ready(function() {
+	$$("ul li.mi-nodes").addClass('active');
+});
+</script>
