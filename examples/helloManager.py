@@ -19,7 +19,7 @@ if __name__ == "__main__" :
     wk.init_cmd_option()
 
     try :
-
+        #update 2016-10-10
         tasks = []
 
         print os.path.dirname(os.path.abspath(__file__))
