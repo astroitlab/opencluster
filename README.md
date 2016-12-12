@@ -8,3 +8,5 @@ OpenCluster  --   Python Distributed Computing API
 ####2,Extension
     python helloManager.py -h
     
+    
+####3, Evaluation
