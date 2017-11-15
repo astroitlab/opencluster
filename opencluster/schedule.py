@@ -22,6 +22,7 @@ try :
     from mesos.interface import mesos_pb2
 except :
     print "warning no module named mesos.native or mesos.interface."
+    pass
 
 MAX_FAILED = 3
 EXECUTOR_MEMORY = 64 # cache
