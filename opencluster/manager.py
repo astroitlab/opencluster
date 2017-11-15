@@ -1,4 +1,5 @@
 import sys
+import os
 import logging
 import optparse
 import Queue
@@ -52,11 +53,15 @@ def parse_options():
     if options.mem is None:
         options.mem = Conf.MEM_PER_TASK
 
-    if options.config:
-        Conf.setConfigFile(options.config)
-
     options.logLevel = (options.quiet and logging.ERROR or options.verbose and logging.DEBUG or logging.INFO)
     setLogger(__name__, options.name, options.logLevel)
+
+    if options.config:
+        if os.path.exists(options.config) and os.path.isfile(options.config):
+            Conf.setConfigFile(options.config)
+        else:
+            logger.error("configuration file is not found. (%s)" %(options.config,))
+            sys.exit(2)
 
     return options
 
