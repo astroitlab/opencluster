@@ -28,6 +28,8 @@ if [ ! -f "$HOSTLIST" ]; then
 fi
 
 python ${bin}/startfactory.py > /dev/null 2>&1 &
+python ${bin}/startfactoryweb.py > /dev/null 2>&1 &
+
 
 sleep 1
 

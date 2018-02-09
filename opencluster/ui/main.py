@@ -1,4 +1,5 @@
 import os
+import logging
 import web
 import wsgiref
 import datetime
@@ -11,6 +12,7 @@ from opencluster.configuration import Conf
 from opencluster.factory import FactoryContext
 
 from api import *
+logger = logging.getLogger(__name__)
 
 PWD = os.path.abspath(os.path.dirname(__file__))
 urls = [
@@ -52,10 +54,10 @@ class FactoryInstance(object):
     @staticmethod
     def get():
         if not FactoryInstance._instance or time.time()-FactoryInstance._lastTime > 30:
-            print "Factory Instance Init......"
+            logger.info("Factory Instance Init......")
             FactoryInstance._instance = FactoryContext.getDefaultFactory()
+            logger.info("Factory Instance Init......22222222")
             FactoryInstance._lastTime = time.time()
-
         return FactoryInstance._instance
 
 class WebServer(object) :
@@ -120,7 +122,6 @@ class Index(object):
             workers = FactoryInstance.get().getNodeByPrefix("_worker_") or []
             services = FactoryInstance.get().getNodeByPrefix("_service_") or []
             jobs = FactoryInstance.get().getNodes("_manager_") or []
-
             retNodes = []
             totalMemory = 0
             totalCPU = 0
@@ -132,7 +133,6 @@ class Index(object):
                 totalCPU += v.obj.cpuCount
                 usedMemory += v.obj.usedMemory
                 usedCPU += v.obj.cpuTotalPercent
-
             if totalMemory > 0 :
                 usedMemory = int(usedMemory*100/totalMemory)
             if totalCPU > 0 :
@@ -142,7 +142,6 @@ class Index(object):
 
             dataCPU = [{"value":"%.2f"%usedCPU,"color":"#F38630","label":"Used"},{"value":"%.2f"%(100-usedCPU),"color":"#E0E4CC","label":"UnUsed"}]
             dataMem = [{"value":"%.2f"%usedMemory,"color":"#F38630","label":"Used"},{"value":"%.2f"%(100-usedMemory),"color":"#E0E4CC","label":"UnUsed"}]
-
             return titled_render().index(nodes = retNodes,jobs=jobs,services=services,workers=workers,dataCPU = dataCPU,dataMem = dataMem,totalCPU=totalCPU,totalMemory=totalMemory)
         except Exception, e:
             return titled_render().error(error=e.message)

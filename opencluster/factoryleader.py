@@ -39,7 +39,7 @@ class FactoryLeader(object):
 
     def getLeaderFactory(self):
         index = self.getLeaderIndex(self.thisServer)
-        return self.electionLeader(-1,index)
+        return self.electionLeader(-1, index)
         
     def getNextLeader(self):
         logger.info("getNextLeader........")
@@ -55,8 +55,10 @@ class FactoryLeader(object):
         
         try :
             factoryService = ServiceContext.getService(server[0], int(server[1]), self.serviceName)
+            logger.debug(factoryService)
             if factoryService and factoryService.askLeader():
                 theOk = True
+
         except Exception , e :
             logger.error("electionLeader2 %s:%s----%s" % (server[0], server[1], e))
             theOk = False
@@ -187,4 +189,4 @@ class FactoryLeader(object):
         return sendlist
     
 #end        
-        
+

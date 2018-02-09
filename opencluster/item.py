@@ -53,9 +53,11 @@ class ObjectBeanList(list) :
         super(ObjectBeanList,self).__init__()
         self.vid = vid
 
+
 class ObjValue(dict):
     def __init__(self):
-        pass
+        super(ObjValue,self).__init__()
+
     def getWidely(self, regex):
         p = re.compile(regex)
         obj = ObjValue()
@@ -106,7 +108,7 @@ class Task:
     TASK_LOST = 5
     TASK_ERROR = 7
 
-    def __init__(self, id, tried = 0,state = 6,state_time = 0,workerClass=None,data = None,workDir = None,priority=10,resources={"cpus":0,"mem":0,"gpus":0},warehouse="",jobName=""):
+    def __init__(self, id, tried = 0,state = 6,state_time = 0,workerClass=None,data = None,workDir = None,priority=1,resources={"cpus":0,"mem":0,"gpus":0},warehouse="",jobName=""):
         self.id = id
         self.tried = tried
         self.state = state
@@ -349,7 +351,6 @@ class FactoryObjValue(ObjValue):
                         if time.time()-long(self.get(key)) > exp :
                             keys.append(keyArr)
         return keys
-
 
 if __name__ == "__main__" :
     obj = FactoryObjValue()

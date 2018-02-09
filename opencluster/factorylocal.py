@@ -80,6 +80,7 @@ class FactoryLocal(object):
         return ob
     
     def getNodes(self, domain,count=0):
+
         objList = None
 
         if domain is None :

@@ -484,7 +484,7 @@ def start_factory_mesos():
         spawn(fetchTasksFromMySQL)
     else:
         for i in range(1,sched.priority_size+1):
-            spawn(fetchTasksFromKafka,i)
+            spawn(fetchTasksFromKafka, i)
 
     def handler(signm, frame):
         logger.warning("got signal %d, exit now", signm)
