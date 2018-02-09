@@ -5,6 +5,9 @@ OpenCluster  --   Python Distributed Computing API
 ### 2,Configuration:
     mkdir -p /work/opencluster/logs
     cp ${OPENCLUSTER_HOME}/opencluster/config.ini ${OPENCLUSTER_HOME}/opencluster/logging.conf /work/opencluster
-### 3,Extension
+### 3,Start Cluster
+modify config.ini and sbin/nodes according to your cluster, then run:
+	sbin/start-all.sh
+### 4,Run tests
     cd ${OPENCLUSTER_HOME}
     python example/helloManager.py -h
