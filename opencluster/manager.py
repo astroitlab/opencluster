@@ -215,8 +215,12 @@ class Manager(object):
             for obj in obList:
                 #hostPort = str(obj.obj).split(":")
                 if len(str(obj.obj).split(":"))>2:
-                    hostPort = str(obj.obj).split("]:")
-                    hostPort[0] = hostPort[0][1:]
+                    #hostPort = str(obj.obj).split("]:")
+                    #hostPort[0] = hostPort[0][1:]
+                    hostPort = []
+                    p_index = str(obj.obj).rfind(':')
+                    hostPort.append(str(obj.obj)[0:p_index])
+                    hostPort.append(str(obj.obj)[p_index+1:])
                 else:
                     hostPort = str(obj.obj).split(":")
                 if hostPort[0] != host or int(hostPort[1]) != port:
@@ -230,8 +234,12 @@ class Manager(object):
             for obj in obList:
                 #hostPort = str(obj.obj).split(":")
                 if len(str(obj.obj).split(":"))>2:
-                    hostPort = str(obj.obj).split("]:")
-                    hostPort[0] = hostPort[0][1:]
+                    #hostPort = str(obj.obj).split("]:")
+                    #hostPort[0] = hostPort[0][1:]
+                    hostPort = []
+                    p_index = str(obj.obj).rfind(':')
+                    hostPort.append(str(obj.obj)[0:p_index])
+                    hostPort.append(str(obj.obj)[p_index+1:])
                 else:
                     hostPort = str(obj.obj).split(":")
                 if hostPort[0] != host or int(hostPort[1]) != port:
