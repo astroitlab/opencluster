@@ -16,6 +16,7 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle'])
 Pyro4.config.COMPRESSION = True
 Pyro4.config.SERVERTYPE = "multiplex"    #  multiplex or thread
+Pyro4.config.PREFER_IP_VERSION = 6
 
 
 logger = logging.getLogger(__name__)
@@ -152,8 +153,10 @@ class NodeDademon(object):
     def start(self):
         context = zmq.Context(1)
         backend = context.socket(zmq.ROUTER)  # ROUTER
+        backend.setsockopt(zmq.IPV6,True)
 
-        backend.bind("tcp://*:%s" % Conf.getNodePortForService())  # For services
+        #backend.bind("tcp://*:%s" % Conf.getNodePortForService())  # For services
+        backend.bind("tcp://[::]:%s" % Conf.getNodePortForService())  # For services
 
         poll_services = zmq.Poller()
         poll_services.register(backend, zmq.POLLIN)
@@ -168,10 +171,21 @@ class NodeDademon(object):
                 if not frames:
                     break
 
-                addressList = str(frames[0]).split(":")
-                address = addressList[0]
-                port = int(addressList[1])
-                serviceName = addressList[2]
+                if len(str(frames[0]).split(":"))>3:
+                    temp_frame = str(frames[0]).split("]:")
+                    address = temp_frame[0][1:]
+                    port = temp_frame[1].split(":")[0]
+                    serviceName = temp_frame[1].split(":")[1]
+                else:
+                    addressList = str(frames[0]).split(":")
+                    address = addressList[0]
+                    port = int(addressList[1])
+                    serviceName = addressList[2]
+
+                #addressList = str(frames[0]).split(":")
+                #address = addressList[0]
+                #port = int(addressList[1])
+                #serviceName = addressList[2]
                 self.node.services.pop("%s:%s:%s"%(address,port,serviceName),None)
                 self.node.services["%s:%s:%s"%(address,port,serviceName)] = Service(address,port,serviceName)
 

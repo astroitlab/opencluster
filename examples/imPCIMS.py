@@ -21,7 +21,8 @@ def on_message(channel, method_frame, header_frame, body):
 
 if __name__ == "__main__" :
 
-    db = MySQLdb.connect(db="pcims", user="root",passwd="wsl",host="localhost",port=3306,charset="utf8")
+    #db = MySQLdb.connect(db="pcims", user="root",passwd="wsl",host="localhost",port=3306,charset="utf8")
+    db = MySQLdb.connect(db="pcims", user="root", passwd="wsl", host="::1", port=3306, charset="utf8")
     cur = db.cursor()
     list_dirs = os.walk("J:\\pcims")
     values = []

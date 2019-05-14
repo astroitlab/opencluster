@@ -22,7 +22,7 @@ urls = [
             "/nodes", "Nodes",
             "/workers", "Workers",
             "/services", "Services",
-            "/node/(.+)", "Node",
+            r"/node/(.+)", "Node",
             "/nodeWorker", "WorkerOperation",
             "/nodeService", "ServiceOperation",
             "/about/(about)", "About",
@@ -31,7 +31,7 @@ urls = [
 
 urls.extend(apiUrls)
 urls.extend(["*","WebHandler"])
-app = web.application(tuple(urls),globals())
+#app = web.application(tuple(urls),globals())
 
 folder_templates_full_path = PWD + Conf.getWebTemplatesPath()
 
@@ -62,13 +62,22 @@ class FactoryInstance(object):
 
 class WebServer(object) :
     def __init__(self,__server):
-        server = __server.split(":")
+        #server = __server.split(":")
+        if len(__server.split(":")) > 2:
+            server = __server.split("]:")
+            server[0] = server[0][1:]
+        else:
+            server = __server.split(":")
         self.server = (server[0],int(server[1]))
         self.setup_session_folder_full_path()
         # web.config.static_path = PWD + Conf.getWebStaticPath()
 
     def start(self) :
-        app.run(self.server)
+        #app.run(self.server)
+        #web.httpserver.runsimple(app.wsgifunc(),(self.server[0],int(self.server[1])))
+        app = WebApplication(tuple(urls),globals())
+        app.run(self.server[0],self.server[1])
+        #app = WebApplication()
 
     def setup_session_folder_full_path(self):
         # global session
@@ -80,7 +89,11 @@ class WebServer(object) :
         # else:
         #     session = web.config._session
         pass
+class WebApplication(web.application):
 
+    def run(self,ipv,portv,*middleware):
+        func = self.wsgifunc(*middleware)
+        return web.httpserver.runsimple(func, (ipv,int(portv)))
 
 
 def server_static(filename, mime_type=None):
@@ -182,21 +195,38 @@ class Workers(object):
             return titled_render().error(error=e.message)
 class Node(object):
     def GET(self,host):
+        print '*********************************************',host
         try :
-            node = FactoryInstance.get().getDomainNode("_node_",str(host))
+            node = FactoryInstance.get().getDomainNode("_node_","".join(str(host).split(":")))
             workers = FactoryInstance.get().getNodeByPrefix("_worker_") or []
             services = FactoryInstance.get().getNodeByPrefix("_service_") or []
 
             retWorkers = []
             for v in workers:
-                if "".join(v.obj.split(":")[0].split(".")) == str(host) :
-                    retWorkers.append(v)
+                #if "".join(v.obj.split(":")[0].split(".")) == str(host) :
+                #    retWorkers.append(v)
+                if len(v.obj.split(":")) > 2:
+
+                    if "".join(v.obj.split("]:")[0][1:].split(":")) == str(host):
+                        retWorkers.append(v)
+                    #pass
+                else:
+                    if "".join(v.obj.split(":")[0].split(".")) == str(host):
+                        retWorkers.append(v)
+
             retServices = []
             for v in services :
-                if "".join(v.obj.split(":")[0].split(".")) == str(host) :
-                    retServices.append(v)
+                #if "".join(v.obj.split(":")[0].split(".")) == str(host) :
+                #    retServices.append(v)
+                if len(v.obj.split(":")) > 2:
+                    if "".join(v.obj.split("]:")[0][1:].split(":")) == str(host):
+                        retWorkers.append(v)
+                    #pass
+                else:
+                    if "".join(v.obj.split(":")[0].split(".")) == str(host):
+                        retWorkers.append(v)
             if node is None :
-                raise Exception("Node(%) is not found"%host)
+                raise Exception("Node(%s) is not found"%host)
             node.obj.startTime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(node.obj.startTime))
 
             return titled_render().node(node = node.obj,services=retServices,workers=retWorkers)
@@ -209,7 +239,7 @@ class WorkerOperation(object):
             workerType = req.workerType
             host = req.host
             action = req.action
-            node = FactoryInstance.get().getDomainNode("_node_",str(host))
+            node = FactoryInstance.get().getDomainNode("_node_","".join(str(host).split(":")))
 
             if node is None :
                 raise Exception("Node(%s) is not found"%host)
@@ -222,7 +252,12 @@ class WorkerOperation(object):
             elif action == "stop" :
                 keyArr = FactoryObjValue.getDomainNode(workerType)
                 worker = FactoryInstance.get().getDomainNode(keyArr[0],keyArr[1])
-                whostPort = worker.obj.split(":")
+                #whostPort = worker.obj.split(":")
+                if len(worker.obj.split(":"))>2:
+                    whostPort = worker.obj.split("]:")
+                    whostPort[0] = whostPort[0][1:]
+                else:
+                    whostPort = worker.obj.split(":")
                 nodeService.stopWorker(keyArr[0],whostPort[1])
             elif action == "stopAll" :
                 nodeService.stopAllWorker(workerType)
@@ -238,7 +273,7 @@ class ServiceOperation(object):
             host = req.host
             action = req.action
 
-            node = FactoryInstance.get().getDomainNode("_node_",str(host))
+            node = FactoryInstance.get().getDomainNode("_node_","".join(str(host).split(":")))
 
             if node is None :
                 raise Exception("Node(%s) is not found"%host)
@@ -252,7 +287,12 @@ class ServiceOperation(object):
             elif action == "stop" :
                 keyArr = FactoryObjValue.getDomainNode(serviceType)
                 worker = FactoryInstance.get().getDomainNode(keyArr[0],keyArr[1])
-                shostPort = worker.obj.split(":")
+                #shostPort = worker.obj.split(":")
+                if len(worker.obj.split(":"))>2:
+                    shostPort = worker.obj.split("]:")
+                    shostPort[0] = shostPort[0][1:]
+                else:
+                    shostPort = worker.obj.split(":")
                 nodeService.stopService(keyArr[0],shostPort[1])
 
             elif action == "stopAll" :

@@ -3,7 +3,7 @@ import logging
 import time
 import Pyro4
 import configuration as conf
-
+Pyro4.config.PREFER_IP_VERSION = 6
 
 logger = logging.getLogger(__name__)
 

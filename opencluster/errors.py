@@ -9,7 +9,8 @@ import psutil
 
 import configuration as conf
 from Pyro4.errors import CommunicationError
-
+import Pyro4
+Pyro4.config.PREFER_IP_VERSION = 6
 logger = logging.getLogger(__name__)
 
 class ServiceError(Exception):

@@ -115,7 +115,11 @@ class Conf(object):
 
     @classmethod
     def getUri(cls, host, port, serviceName):
-        return "PYRO:%s@%s:%s" % (serviceName, host, str(port))
+        if len(host.split(':')) > 1:
+            return "PYRO:%s@[%s]:%s" % (serviceName, host, str(port))
+        else:
+            return "PYRO:%s@%s:%s" % (serviceName, host, str(port))
+        #return "PYRO:%s@%s:%s" % (serviceName, host, str(port))
 
     @classmethod
     def getWebStaticFullPath(cls):

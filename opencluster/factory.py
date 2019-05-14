@@ -5,6 +5,7 @@ Copyright by www.cnlab.net
 
 import logging
 import Pyro4
+import re
 
 from opencluster.configuration import Conf, setLogger
 from opencluster.servicecontext import ServiceContext
@@ -19,6 +20,7 @@ Pyro4.config.COMPRESSION = True
 Pyro4.config.POLLTIMEOUT = 5
 Pyro4.config.SERVERTYPE = "multiplex"    #  multiplex or thread
 Pyro4.config.SOCK_REUSE = True
+Pyro4.config.PREFER_IP_VERSION = 6
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,11 @@ class FactoryContext(ServiceContext):
     def startDefaultFactory(cls):
         servers = Conf.getFactoryServers()
         servs = servers.split(",")
-        server = servs[0].split(":")
+        if re.search(']:',servs[0]):
+            server=servs[0].split("]:")
+            server[0]=server[0][1:]
+        else:
+            server = servs[0].split(":")
 
         cls.startFactory(server[0], int(server[1]), servs, Conf.getFactoryServiceName())
 
@@ -48,7 +54,12 @@ class FactoryContext(ServiceContext):
     def startSlaveFactory(cls):
         servers = Conf.getFactoryServers()
         servs = servers.split(",")
-        server = servs[1].split(":")
+        if re.search(']:',servs[0]):
+            server=servs[1].split("]:")
+            server[0]=server[0][1:]
+        else:
+            server = servs[1].split(":")
+        #server = servs[1].split(":")
         
         cls.startFactory(server[0], int(server[1]), servs, Conf.getFactoryServiceName())
 
@@ -72,7 +83,7 @@ class FactoryContext(ServiceContext):
         try:
             d = Pyro4.Daemon(host=host, port=port)
             d.register(WorkerService(worker), workerType)
-            cls.getDefaultFactory().createDomainNode(workerOrService + workerType, "".join(host.split("."))+str(port), host+":"+str(port),True)
+            cls.getDefaultFactory().createDomainNode(workerOrService + workerType, "".join(host.split(":"))+str(port), host+":"+str(port),True)
             d.requestLoop(checkPyroLoopCondition)
         except KeyboardInterrupt ,e :
             pyroLoopCondition = False
@@ -87,7 +98,12 @@ class FactoryContext(ServiceContext):
     def getDefaultFactory(cls):
         servers = Conf.getFactoryServers()
         servs = servers.split(",")
-        server = servs[0].split(":")
+        if re.search(']:',servs[0]):
+            server=servs[0].split("]:")
+            server[0]=server[0][1:]
+        else:
+            server = servs[0].split(":")
+        #server = servs[0].split(":")
 
         return cls.getFactory(server[0], int(server[1]), servs, Conf.getFactoryServiceName())
 

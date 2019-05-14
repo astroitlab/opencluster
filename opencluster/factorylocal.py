@@ -6,6 +6,8 @@ from opencluster.factoryleader import FactoryLeader
 from opencluster.item import *
 from opencluster.errors import *
 from opencluster.hbdaemon import HbDaemon
+import Pyro4
+Pyro4.config.PREFER_IP_VERSION = 6
 
 class FactoryLocal(object):
     
@@ -40,6 +42,7 @@ class FactoryLocal(object):
         ob = None
         if obj is None :
             return None
+        print 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW',node,domain
         if FactoryObjValue.checkGrammer(domain) and FactoryObjValue.checkGrammer(node) :
             try:
                 ov = self.factory.create(domain,node,obj,self.sid,isHearBeat,timeout)

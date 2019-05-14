@@ -46,15 +46,15 @@ class FactoryPatternExector(object):
 
     @classmethod
     def createPhysicalNode(cls, node):
-        return cls.getFactory().createDomainNode("_node_", "".join(node.host.split(".")), node,True)
+        return cls.getFactory().createDomainNode("_node_", "".join(node.host.split(":")), node,True)
 
     @classmethod
     def updatePhysicalNode(cls, node):
-        return cls.getFactory().createDomainNode("_node_", "".join(node.host.split(".")), node,False)
+        return cls.getFactory().createDomainNode("_node_", "".join(node.host.split(":")), node,False)
 
     @classmethod
     def createServiceNode(cls, host, port, serviceName):
-        return cls.getFactory().createDomainNode("_service_" + serviceName, "".join(host.split("."))+str(port), host+":"+str(port),False)
+        return cls.getFactory().createDomainNode("_service_" + serviceName, "".join(host.split(":"))+str(port), host+":"+str(port),False)
 
     @classmethod
     def createManager(cls, manager):

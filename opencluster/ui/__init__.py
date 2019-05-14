@@ -1,1 +1,1 @@
-__all__ = ['main','view']
+__all__ = ['main6.py', 'view']

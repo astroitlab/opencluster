@@ -23,6 +23,8 @@ from mesos.native import MesosExecutorDriver, MesosSchedulerDriver
 from mesos.interface import Executor, Scheduler, mesos_pb2
 from kafka import KafkaConsumer, KafkaClient, SimpleProducer
 
+Pyro4.config.PREFER_IP_VERSION = 6
+
 logger = logging.getLogger(__name__)
 
 EXECUTOR_MEMORY = 64 # cache
@@ -69,7 +71,13 @@ class FactoryMesos(object):
         self.producer = None
 
         if len(self.warehouse_addrs) > 2:
-            mysqlIpAndPort = self.warehouse_addrs[0].split(":")
+            #mysqlIpAndPort = self.warehouse_addrs[0].split(":")
+            if len(self.warehouse_addrs[0].split(":"))>2:
+                mysqlIpAndPort = self.warehouse_addrs[0].split("]:")
+                mysqlIpAndPort[0] = mysqlIpAndPort[0][1:]
+            else:
+                mysqlIpAndPort = self.warehouse_addrs[0].split(":")
+
             self.outputdb = MySQLdb.connect(host=mysqlIpAndPort[0], port = int(mysqlIpAndPort[1]), db =self.warehouse_addrs[1],user=self.warehouse_addrs[2],passwd=self.warehouse_addrs[3])
         else:
             self.kafka_client = KafkaClient(self.options.warehouse_addr)
@@ -408,7 +416,12 @@ def start_factory_mesos():
 
     servers = options.factory or Conf.getFactoryServers()
     servs = servers.split(",")
-    server = servs[0].split(":")
+    #server = servs[0].split(":")
+    if len(servs[0].split(":"))>2:
+        server = servs[0].split("]:")
+        server[0] = server[0][1:]
+    else:
+        server = servs[0].split(":")
 
     options.logLevel = (options.quiet and logging.ERROR or options.verbose and logging.DEBUG or logging.INFO)
     setLogger(Conf.getFactoryServiceName(), "MESOS",options.logLevel)
@@ -427,7 +440,12 @@ def start_factory_mesos():
 
     def fetchTasksFromMySQL():
         global pyroLoopCondition
-        mysqlIpAndPort = warehouse_addrs[0].split(":")
+        #mysqlIpAndPort = warehouse_addrs[0].split(":")
+        if len(warehouse_addrs[0].split(":")) > 2:
+            mysqlIpAndPort = warehouse_addrs[0].split("]:")
+            mysqlIpAndPort[0] = mysqlIpAndPort[0][1:]
+        else:
+            mysqlIpAndPort = warehouse_addrs[0].split(":")
         last_data_time = time.time()
 
         while pyroLoopCondition:

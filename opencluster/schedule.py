@@ -10,6 +10,7 @@ import random
 import multiprocessing
 from Pyro4.errors import CommunicationError
 import MySQLdb
+import Pyro4
 import traceback
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,8 @@ try :
 except :
     print "warning no module named mesos.native or mesos.interface."
     pass
+
+Pyro4.config.PREFER_IP_VERSION = 6
 
 MAX_FAILED = 3
 EXECUTOR_MEMORY = 64 # cache
@@ -258,7 +261,12 @@ class FactoryScheduler(Scheduler):
 
     def mysqlTasks(self,connectStr,warehouse,tasks):
         urls = connectStr.split(",");
-        mysqlIpAndPort = urls[0].split(":")
+        #mysqlIpAndPort = urls[0].split(":")
+        if len(urls[0].split(":")) > 2:
+            mysqlIpAndPort = urls[0].split("]:")
+            mysqlIpAndPort[0] = mysqlIpAndPort[0][1:]
+        else:
+            mysqlIpAndPort = urls[0].split(":")
         db = None
         try :
             db = MySQLdb.connect(host=mysqlIpAndPort[0], port = int(mysqlIpAndPort[1]),db =urls[1], user=urls[2],passwd=urls[3])

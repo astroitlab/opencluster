@@ -11,4 +11,4 @@ if __name__ == "__main__" :
         print "Usage : %s LocalIP" % sys.argv[0]
         sys.exit(1)
 
-    NodeDademon(sys.argv[1],Conf.getNodeDefaultPort(),"".join(sys.argv[1].split(".")))
+    NodeDademon(sys.argv[1],Conf.getNodeDefaultPort(),"".join(sys.argv[1].split(":")))

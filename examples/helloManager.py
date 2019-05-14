@@ -32,8 +32,7 @@ if __name__ == "__main__" :
 
         while loopCondition:
             for message in consumer.fetch_messages():
-                print "topic=%s, partition=%s, offset=%s, key=%s " % (message.topic, message.partition,
-                                             message.offset, message.key)
+                print ("topic=%s, partition=%s, offset=%s, key=%s" % (message.topic, message.partition, message.offset, message.key))
                 task = cPickle.loads(message.value)
 
                 if task.state == Task.TASK_FINISHED:

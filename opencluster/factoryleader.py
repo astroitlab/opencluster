@@ -8,6 +8,7 @@ import traceback
 from opencluster.errors import LeaderError
 from opencluster.configuration import Conf
 from opencluster.servicecontext import ServiceContext
+Pyro4.config.PREFER_IP_VERSION = 6
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,10 @@ class FactoryLeader(object):
         self.master = False
         self.alwaysTry = Conf.getAlwaysTryLeader()
         self.serviceName = serviceName
-        self.thisServer = "%s:%s" % (host, port)
+        if len(host.split(':')) > 1:
+            self.thisServer = "[%s]:%s" % (host, port)
+        else:        
+            self.thisServer = "%s:%s" % (host, port)
         self.groupServers = servers
         self.queue = Queue.Queue()
         self.rpl = None
@@ -50,7 +54,11 @@ class FactoryLeader(object):
         theOk = False
         if index >= len(self.groupServers) :
             index = 0
-        server = self.groupServers[index].split(":")
+        if len(self.groupServers[index].split(":")) > 2:
+            server = self.groupServers[index].split("]:")
+            server[0]=server[0][1:]
+        else:
+            server = self.groupServers[index].split(":")
         factoryService = None
         
         try :
@@ -76,7 +84,12 @@ class FactoryLeader(object):
         theOk = True
         if index >= len(self.groupServers) :
             index = 0
-        server = self.groupServers[index].split(":")
+        #server = self.groupServers[index].split(":")
+        if len(self.groupServers[index].split(":")) > 2:
+            server = self.groupServers[index].split("]:")
+            server[0]=server[0][1:]
+        else:
+            server = self.groupServers[index].split(":")
         factoryService = None
         try :
             factoryService = ServiceContext.getService(server[0], int(server[1]), self.serviceName)
@@ -114,7 +127,15 @@ class FactoryLeader(object):
     def getMaster(self):
         try :
             if self.master :
-                return self.thisServer.split(":")
+                if len(self.thisServer.split(":")) > 2:
+                    server = self.thisServer.split("]:")
+                    server[0] = server[0][1:]
+                    return server
+                else:
+                    server = self.thisServer.split(":")
+                    return server
+                #return server
+                #return self.thisServer.split(":")
         except Exception,e :
             logger.error(e)
 
@@ -123,7 +144,12 @@ class FactoryLeader(object):
         factorys = []
         for str in self.groupServers :
             if str != self.thisServer :
-                server = str.split(":")
+                #server = str.split(":")
+                if len(str.split(":")) > 2:
+                    server = str.split("]:")
+                    server[0] = server[0][1:]
+                else:
+                    server = str.split(":")
                 try :
                     pk =  ServiceContext.getService(server[0], int(server[1]), self.serviceName)
                     clientHost = pk.getClientHost()#check alive state,if not connected,raise CommunicationError
@@ -136,7 +162,12 @@ class FactoryLeader(object):
         
     def checkMasterFactory(self, sv, factory):
         if self.master or not self.getOtherMasterFactory(sv) :
-            sv = self.thisServer.split(":")
+            #sv = self.thisServer.split(":")
+            if len(self.thisServer.split(":")) > 2:
+                sv = self.thisServer.split("]:")
+                sv[0] = sv[0][1:]
+            else:
+                server = self.thisServer.split(":")
             self.setMaster(True, factory)
             return True
         else :

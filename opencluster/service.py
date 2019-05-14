@@ -15,7 +15,8 @@ class Service(Worker):
         self.port = port
 
         if self.host is None:
-            self.host = "127.0.0.1"
+            #self.host = "127.0.0.1"
+            self.host = "::1"
 
         if self.port is None:
             self.port = random.randint(30000, 40000)

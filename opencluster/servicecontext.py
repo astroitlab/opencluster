@@ -11,7 +11,7 @@ Pyro4.config.COMPRESSION = True
 Pyro4.config.POLLTIMEOUT = 5
 Pyro4.config.SERVERTYPE = "multiplex"    #  multiplex or thread
 Pyro4.config.SOCK_REUSE = True
-
+Pyro4.config.PREFER_IP_VERSION = 6
 
 class ServiceContext(object):
 

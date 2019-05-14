@@ -213,7 +213,12 @@ class Manager(object):
         wsList = []
         if not obList is None:
             for obj in obList:
-                hostPort = str(obj.obj).split(":")
+                #hostPort = str(obj.obj).split(":")
+                if len(str(obj.obj).split(":"))>2:
+                    hostPort = str(obj.obj).split("]:")
+                    hostPort[0] = hostPort[0][1:]
+                else:
+                    hostPort = str(obj.obj).split(":")
                 if hostPort[0] != host or int(hostPort[1]) != port:
                     wsList.append([hostPort[0], hostPort[1], workerType])
         return wsList
@@ -223,7 +228,12 @@ class Manager(object):
         wsList = []
         if not obList is None:
             for obj in obList:
-                hostPort = str(obj.obj).split(":")
+                #hostPort = str(obj.obj).split(":")
+                if len(str(obj.obj).split(":"))>2:
+                    hostPort = str(obj.obj).split("]:")
+                    hostPort[0] = hostPort[0][1:]
+                else:
+                    hostPort = str(obj.obj).split(":")
                 if hostPort[0] != host or int(hostPort[1]) != port:
                     wsList.append([hostPort[0], hostPort[1], serviceName])
         return wsList
