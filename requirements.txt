@@ -1,4 +1,4 @@
-Pyro4
+Pyro4<=4.40
 pyzmq
 psutil
 web.py
