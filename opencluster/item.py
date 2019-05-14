@@ -2,9 +2,10 @@ import os,sys
 import re
 import copy
 import time
-import meta
 import importlib
 import imp
+
+import opencluster.meta
 
 TaskStateName = {
     6: "TASK_STAGING",  # Initial state. Framework status updates should not use.
@@ -22,8 +23,8 @@ class ObjectBean(object):
     def __init__(self):
         self.obj = None
         self.name = ""
-        self.vid = 0l
-        self.createTime = 0l
+        self.vid = 0.0
+        self.createTime = 0.0
 
     def toObject(self):
         return self.obj
@@ -121,13 +122,14 @@ class Task:
         self.warehouse = warehouse
         self.jobName = jobName
         self.result = None
+        self.locs = None
 
     def run(self,attemptId):
         sys.path.extend([self.workDir])
         moduleAndClass = self.workerClass.split(".")
         workerModule  = importlib.import_module('.'.join(moduleAndClass[:-1]))
         worker = getattr(workerModule, moduleAndClass[-1])()
-        return worker.doTask(self.data);
+        return worker.doTask(self.data)
 
     def getStateName(self):
         return TaskStateName[self.state]
@@ -173,7 +175,7 @@ class FutureResult(TaskEndReason):
         self.state = state
         self.result = result
     def __str__(self):
-        return 'FutureResult[%s], message : %s,state : %s' % (self.message,TaskStateName[self.state])
+        return "FutureResult[%s], message : %s,state : %s" % (self.id, self.message,TaskStateName[self.state])
 
 class FactoryObjValue(ObjValue):
     def getNodeWidely(self, nodeKey):
@@ -228,6 +230,8 @@ class FactoryObjValue(ObjValue):
                     ov.setObj(meta.getMetaUpdater(domainNodeKey), updateby)
                 if updateip :
                     ov.setObj(meta.getMetaUpdaterIP(domainNodeKey), updateip)
+                if updatetime :
+                    ov.setObj(meta.getMetaUpdateTime(domainNodeKey), updatetime)
                 if timeout :
                     ov.setObj(meta.getMetaTimeout(domainNodeKey), timeout)
                 if meetadata :
@@ -357,15 +361,15 @@ if __name__ == "__main__" :
     obj["_worker_workerUVFITS"] = "1"
     obj["_worker_workerdemo"] = "0"
     for (k,v) in obj.items() :
-        print k,v
+        print(k,v)
     p = re.compile("_worker_*")
     obj = ObjValue()
     if p.match("_worker_workerdemo.") :
-        print "1"
+        print("1")
 
     obj2 = FactoryObjValue()
     obj2["ddx"] = "dxxx"
 
     obj.putAll(obj2)
 
-    print FactoryObjValue.checkGrammer("2323x2dsdafa")
+    print(FactoryObjValue.checkGrammer("2323x2dsdafa"))

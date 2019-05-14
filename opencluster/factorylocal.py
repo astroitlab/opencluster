@@ -4,6 +4,7 @@ import traceback
 from Pyro4.errors import CommunicationError
 from opencluster.factoryleader import FactoryLeader
 from opencluster.item import *
+import opencluster.meta
 from opencluster.errors import *
 from opencluster.hbdaemon import HbDaemon
 
@@ -22,7 +23,7 @@ class FactoryLocal(object):
             sid = self.factory.getSessionId()
             if not self.sid :
                 self.sid = sid
-        except Exception,e :
+        except Exception as e :
             logger.error("%s maybe is shutdown,can't connected. Try getNextLeader" % self.factoryLeader.thisServer)
 
             if count < self.serverCount :
@@ -46,7 +47,7 @@ class FactoryLocal(object):
                 ob = self.ovToBean(ov,domain,node)
                 if ob and isHearBeat :
                     HbDaemon.runPutTask(self.factory,self.factoryLeader,domain,node,obj,self.sid)
-            except Exception,e :
+            except Exception as e :
                 logger.error("factorylocal.__put:"+str(e))
 
                 if isinstance(e,CommunicationError):
@@ -68,7 +69,7 @@ class FactoryLocal(object):
                 ov = self.factory.update(domain,node,obj,self.sid)
                 ob = self.ovToBean(ov,domain,node)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error("factorylocal.update:"+str(e))
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()
@@ -92,7 +93,7 @@ class FactoryLocal(object):
                 ov = self.factory.get(domain,None,self.sid)
                 objList = self.ovToBeanList(ov,domain)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()
@@ -110,7 +111,7 @@ class FactoryLocal(object):
             ov = self.factory.getNodesByPrefix(prefix)
             objList = self.ovToBeanList2(ov,isDomain)
 
-        except Exception,e :
+        except Exception as e :
             logger.error(e)
             if isinstance(e,CommunicationError) and count > 3:
                 self.factory = self.factoryLeader.getNextLeader()
@@ -128,7 +129,7 @@ class FactoryLocal(object):
                 ov = self.factory.get(domain,node,self.sid)
                 ob = self.ovToBean(ov,domain,node)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()
@@ -140,14 +141,14 @@ class FactoryLocal(object):
         ob = None
         if FactoryObjValue.checkGrammer(domain) and FactoryObjValue.checkGrammer(node):
             try:
-                vid = 0l
+                vid = 0.0
                 if oldObj :
                     vid = oldObj.vid
 
                 ov = self.factory.getLastest(domain,node,self.sid,vid)
                 ob = self.ovToBean(ov,domain,node)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()
@@ -158,14 +159,14 @@ class FactoryLocal(object):
         obList = None
         if FactoryObjValue.checkGrammer(domain):
             try:
-                vid = 0l
+                vid = 0.0
                 if oldObjList :
                     vid = oldObjList.vid
 
                 ov = self.factory.getLastest(domain,None,self.sid,vid)
                 obList = self.ovToBeanList(ov,domain)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()
@@ -182,7 +183,7 @@ class FactoryLocal(object):
                 ov = self.factory.delete(domain,node,self.sid)
                 ob = self.ovToBean(ov,domain,node)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()
@@ -196,7 +197,7 @@ class FactoryLocal(object):
                 ov = self.factory.delete(domain,None,self.sid)
                 obList = self.ovToBeanList(ov,domain)
 
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e,CommunicationError):
                     self.factory = self.factoryLeader.getNextLeader()

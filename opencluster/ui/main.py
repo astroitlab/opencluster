@@ -11,7 +11,7 @@ from opencluster.item import FactoryObjValue
 from opencluster.configuration import Conf
 from opencluster.factory import FactoryContext
 
-from api import *
+from opencluster.ui.api import *
 logger = logging.getLogger(__name__)
 
 PWD = os.path.abspath(os.path.dirname(__file__))
@@ -81,8 +81,6 @@ class WebServer(object) :
         #     session = web.config._session
         pass
 
-
-
 def server_static(filename, mime_type=None):
     ''''' Serves a file statically '''
     if mime_type is None:
@@ -143,7 +141,7 @@ class Index(object):
             dataCPU = [{"value":"%.2f"%usedCPU,"color":"#F38630","label":"Used"},{"value":"%.2f"%(100-usedCPU),"color":"#E0E4CC","label":"UnUsed"}]
             dataMem = [{"value":"%.2f"%usedMemory,"color":"#F38630","label":"Used"},{"value":"%.2f"%(100-usedMemory),"color":"#E0E4CC","label":"UnUsed"}]
             return titled_render().index(nodes = retNodes,jobs=jobs,services=services,workers=workers,dataCPU = dataCPU,dataMem = dataMem,totalCPU=totalCPU,totalMemory=totalMemory)
-        except Exception, e:
+        except Exception as e:
             return titled_render().error(error=e.message)
 class Nodes(object):
     def GET(self):
@@ -155,7 +153,7 @@ class Nodes(object):
             for v in nodes:
                 retNodes.append(v.obj)
             return titled_render().nodes(nodes = retNodes,services=services,workers=workers)
-        except Exception, e:
+        except Exception as e:
             return titled_render().error(error=e.message)
 class Services(object):
     def GET(self):
@@ -165,7 +163,7 @@ class Services(object):
             serviceTypes = FactoryInstance.get().getNodeByPrefix("_service_",True) or []
 
             return titled_render().services(services=services,serviceTypes=serviceTypes,time = time)
-        except Exception, e:
+        except Exception as e:
             return titled_render().error(error=e.message)
 class Workers(object):
     def GET(self):
@@ -178,7 +176,7 @@ class Workers(object):
             for v in nodes:
                 retNodes.append(v.obj)
             return titled_render().workers(nodes = retNodes,workers=workers,workerTypes=workerTypes,time = time)
-        except Exception, e:
+        except Exception as e:
             return titled_render().error(error=e.message)
 class Node(object):
     def GET(self,host):
@@ -200,7 +198,7 @@ class Node(object):
             node.obj.startTime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(node.obj.startTime))
 
             return titled_render().node(node = node.obj,services=retServices,workers=retWorkers)
-        except Exception, e:
+        except Exception as e:
             return titled_render().error(error=e.message)
 class WorkerOperation(object):
     def GET(self):
@@ -228,7 +226,7 @@ class WorkerOperation(object):
                 nodeService.stopAllWorker(workerType)
 
             web.seeother("node/"+host)
-        except Exception, e:
+        except Exception as e:
             return titled_render().error(error=e.message)
 class ServiceOperation(object):
     def GET(self):
@@ -260,7 +258,7 @@ class ServiceOperation(object):
                 nodeService.stopAllService(keyArr[0])
 
             web.seeother("node/"+host)
-        except Exception, e:
+        except Exception as e:
             traceback.print_exc()
             return titled_render().error(error=e.message)
 
@@ -272,7 +270,7 @@ class Jobs(object):
             for v in jobs:
                 retJobs.append(v.obj)
             return titled_render().jobs(jobs = retJobs)
-        except Exception, e:
+        except Exception as e:
             return web.internalerror()
 
 def getNodeService(node) :

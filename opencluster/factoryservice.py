@@ -1,52 +1,56 @@
 import binascii
-import node
-from errors import *
-from hbdaemon import *
-from item import *
-from factoryleader import FactoryLeader
+
+import threading
+import logging
+import time
+import Pyro4
+from opencluster.errors import ClosetoOverError
+from opencluster.hbdaemon import HbDaemon
+from opencluster.item import FactoryObjValue, ObjValue
+import opencluster.meta
+from opencluster.factoryleader import FactoryLeader
 
 logger = logging.getLogger(__name__)
 
 class FactoryService(object):
-    
+
     def __init__(self, host, port, servers, serviceName):
         self.factoryLeader = FactoryLeader(host, port, serviceName, servers)
         self.factoryInfo = FactoryObjValue()
         self.hbInfo = ObjValue()
 
         self.condition = threading.Condition()
-    
+
     def wantBeMaster(self):
         self.factoryLeader.wantBeMaster(self)
-        
+
     def checkSessionId(self, sessionId):
         if sessionId :
             return sessionId
         else :
             return "se%s%s" % (str(time.time()).replace(".", ""),id(self))
-    
-    
+
     def updateDomainVersion(self, domain=None):
         if not domain :
             return self.getObjectVersion(str(time.time()).replace(".", ""))
         domainversion = self.factoryInfo[meta.getMetaVersion(domain)]
         nodeversions = self.factoryInfo.getWidely(meta.getMetaVersion(domain+"\\..+"));
         crcstr = "".join(v for k, v in nodeversions.items())
-        
+
         crcversion = self.getObjectVersion(crcstr)
-        
+
         if crcversion ==  domainversion :
             return domainversion
         else :
             return crcversion
-   
-        
+
+
     def getObjectVersion(self, crcstr):
         return binascii.crc32(crcstr)
-        
+
     def getSessionId(self):
         return self.checkSessionId(None)
-        
+
     def create(self, domain, node, obj, sessionId, isHeartBeat, timeout=None):
         ClosetoOverError.checkMemCapacity()
         objv = None
@@ -57,8 +61,8 @@ class FactoryService(object):
                     domainNodeKey = FactoryObjValue.getDomainNodekey(domain, node)
                     if not self.factoryInfo.has_key(domainNodeKey) :
                         if not self.factoryInfo.has_key(domain) :
-                            self.factoryInfo.setObj(domain, 0l)
-                            self.factoryInfo.setObj(meta.getMetaVersion(domain), 0l)
+                            self.factoryInfo.setObj(domain, 0.0)
+                            self.factoryInfo.setObj(meta.getMetaVersion(domain), 0.0)
                             self.factoryInfo.setObj(meta.getMetaCreater(domain), sessionId)
                             self.factoryInfo.setObj(meta.getMetaCreaterIP(domain), "")
                             self.factoryInfo.setObj(meta.getMetaCreateTime(domain), time.time())
@@ -89,7 +93,7 @@ class FactoryService(object):
                         logger.info("%s is exist,updating!" %(domainNodeKey))
                         self.update(domain,node,obj,sessionId)
 
-                except Exception,e:
+                except Exception as e:
                     logger.error("factoryservice.create:"+e)
                 finally :
                     #unlock
@@ -105,7 +109,7 @@ class FactoryService(object):
                     #if canWrite
                     if self.factoryInfo.has_key(domainNodeKey) :
                         self.factoryInfo.setObj(domainNodeKey, obj)
-                        theversion = self.getObjectVersion(str(obj));
+                        theversion = self.getObjectVersion(str(obj))
                         if theversion != self.factoryInfo[meta.getMetaVersion(domainNodeKey)] :
                             self.factoryInfo.setObj(meta.getMetaVersion(domainNodeKey), theversion)
                             self.factoryInfo.setObj(meta.getMetaVersion(domain), self.updateDomainVersion())
@@ -118,13 +122,13 @@ class FactoryService(object):
                         objv = self.get(domain, node, sessionId)
                     else :
                         logger.info("%s is not exist!" %(domainNodeKey))
-                except Exception,e:
-                    logger.error("factoryservice.update:"+e)
+                except Exception as e:
+                    logger.error("factoryservice.update:" + e)
                 finally :
                     #unlock
                     self.condition.release()
         return objv
-    
+
     def delete(self, domain, node, sessionId=None):
         objv = None
         if domain :
@@ -146,13 +150,13 @@ class FactoryService(object):
                     else :
                         objv = None
                         logger.info(domainNodeKey + " cant be deleted or not exist!")
-                except Exception,e:
+                except Exception as e:
                     logger.error(e)
                 finally :
                     #unlock
                     self.condition.release()
-        return objv        
-        
+        return objv
+
     def get(self, domain, node, sessionId) :
         ov = None
         if domain :
@@ -204,11 +208,11 @@ class FactoryService(object):
             finally :
                 self.condition.release()
         return ov
-        
+
     def getFactoryInfo(self):
         # logger.info("getFactoryinfo from %s" % (self.getClientHost()))
         return self.getTheFactoryInfo()
-        
+
     def setFactoryInfo(self, objValue):#need write lock
         if self.condition.acquire() :
             try :
@@ -228,14 +232,14 @@ class FactoryService(object):
             return True
         else :
             return False
-            
+
     def heartbeat(self, domainNodeKeys, sessionId):
         retValue = False
         if domainNodeKeys :
-           self.hbInfo.setObj(domainNodeKeys, time.time())
-           domainNodes = domainNodeKeys.split(HbDaemon.vs)
-           if self.get(domainNodes[0],domainNodes[1],sessionId):
-               retValue = True
+            self.hbInfo.setObj(domainNodeKeys, time.time())
+            domainNodes = domainNodeKeys.split(HbDaemon.vs)
+            if self.get(domainNodes[0],domainNodes[1],sessionId):
+                retValue = True
         HbDaemon.runGetTask(self.hbInfo, self)
         return retValue
 

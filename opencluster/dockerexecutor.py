@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 import os.path
-import cPickle
+import pickle
 import socket
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -30,10 +30,10 @@ class DockerExecutor(object):
         i=1
         for message in self.consumer.fetch_messages():
             logger.debug("%d,%s:%s:%s: key=%s " % (i,message.topic, message.partition, message.offset, message.key))
-            task = cPickle.loads(message.value)
+            task = pickle.loads(message.value)
             i = i + 1
             result = task.run(0)
-            self.producer.send_messages(self.warehouse_result, task.id, cPickle.dumps(result))
+            self.producer.send_messages(self.warehouse_result, task.id, pickle.dumps(result))
 
 if __name__ == '__main__':
     setLogger("docker-executor",socket.gethostname())

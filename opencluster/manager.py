@@ -5,7 +5,7 @@ import optparse
 import Queue
 import datetime
 import time
-import cPickle
+import pickle
 import MySQLdb
 
 logger = logging.getLogger(__name__)

@@ -7,7 +7,7 @@ import logging
 
 import psutil
 
-import configuration as conf
+import opencluster.configuration as conf
 from Pyro4.errors import CommunicationError
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class ClosetoOverError(Exception):
             raise e
         return True
     def errorPrint(self) :
-        return "total memory:%.2fM,free :%.2fM" % (self.tm/1000000l,self.fm/1000000l)
+        return "total memory:%.2fM,free :%.2fM" % (self.tm/1000000.0,self.fm/1000000.0)
 
 class RecallError(Exception):
     """
@@ -53,7 +53,7 @@ class RecallError(Exception):
         try :
             if self.checkRecall() :
                 self.setRecall(True)
-        except RecallError , e :
+        except RecallError as e :
             logger.error("tryRecall",e)
             return -1
         return 0

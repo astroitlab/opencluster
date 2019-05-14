@@ -2,7 +2,7 @@ import threading
 import logging
 import time
 import Pyro4
-import configuration as conf
+from opencluster.configuration import Conf
 
 
 logger = logging.getLogger(__name__)
@@ -12,32 +12,41 @@ class HbDaemon :
     getTask = None
     clrTask = None
 
-    pt = conf.Conf.getHeartBeat()
-    dt = conf.Conf.getMaxDelay()
-    gt = pt*2
     vs = "|"
-        
+
+    @classmethod
+    def getHeartBeat(cls):
+        Conf.getHeartBeat()
+
+    @classmethod
+    def getMaxDelay(cls):
+        Conf.getMaxDelay()
+
+    @classmethod
+    def getOptInterval(cls):
+        cls.getHeartBeat()*2
+
     @classmethod
     def runPutTask(cls, factory, factoryLeader, domain, node, obj, sessionId):
         if HbDaemon.putTask is None :
             logger.info("heartbeat runPutTask")
-            HbDaemon.putTask = PutHbTask(factory,factoryLeader,domain,node,obj,sessionId,HbDaemon.pt)#second
+            HbDaemon.putTask = PutHbTask(factory,factoryLeader,domain,node,obj,sessionId,HbDaemon.getHeartBeat())#second
             HbDaemon.putTask.start()
 
     @classmethod
     def runGetTask(cls, hbinfo, factory):
         if HbDaemon.getTask is None :
             logger.info("heartbeat runGetTask")
-            HbDaemon.getTask = GetHbTask(factory,hbinfo,HbDaemon.pt)#second
+            HbDaemon.getTask = GetHbTask(factory, hbinfo, HbDaemon.getHeartBeat())#second
             HbDaemon.getTask.start()
 
     @classmethod
     def runClearTask(cls, factory):
         if HbDaemon.clrTask is None :
-            cpd = int(conf.Conf.getClearPeriod())
+            cpd = int(Conf.getClearPeriod())
             if cpd > 0 :
                 logger.info("Run ClearTask")
-                exp = int(conf.Conf.getExpiration())
+                exp = int(Conf.getExpiration())
                 HbDaemon.clrTask = ClearTask(factory,exp,cpd)#second
                 HbDaemon.clrTask.start()
 
@@ -62,7 +71,7 @@ class PutHbTask(threading.Thread) :
                 if not self.finished.is_set():
                     if not self.__factoryService.heartbeat(self.__domain+HbDaemon.vs+self.__node,self.__sessionId):
                         self.__factoryService.create(self.__domain,self.__node,self.__obj,self.__sessionId,True);
-            except Exception,e :
+            except Exception as e :
                 logger.error(e)
                 if isinstance(e, Pyro4.errors.CommunicationError) :
                     self.__factoryService = self.__factoryLeader.getNextLeader()
@@ -86,11 +95,11 @@ class GetHbTask(threading.Thread) :
                     t = 0
                     if lasttime :
                         t = int(curtime - lasttime)
-                    if t > HbDaemon.gt :
-                        if HbDaemon.dt > 0 and t/HbDaemon.gt < 2 :
+                    if t > HbDaemon.getOptInterval() :
+                        if HbDaemon.getMaxDelay() > 0 and t/HbDaemon.getOptInterval() < 2 :
                             logger.warning("%s Slow and week heartbeat" % key)
-                        if t > HbDaemon.gt + HbDaemon.dt :
-                            if HbDaemon.dt > 0 :
+                        if t > HbDaemon.getOptInterval() + HbDaemon.getMaxDelay() :
+                            if HbDaemon.getMaxDelay() > 0 :
                                 logger.warning("Dead %s has exceeded max delaytime and will be removed by factory." % key)
                             self.__hbinfo.remove(key)
 
@@ -107,17 +116,20 @@ class ClearTask(threading.Thread) :
         self.interval = interval
     def run(self):
         while True :
-            self.finished.wait(self.interval)
+            try:
+                self.finished.wait(self.interval)
 
-            if not self.finished.is_set():
-                pov = self.__factoryService.getTheFactoryInfo()
+                if not self.finished.is_set():
+                    pov = self.__factoryService.getTheFactoryInfo()
 
-                keyArray = pov.getFactoryInfoExp(self.__expl)
+                    keyArray = pov.getFactoryInfoExp(self.__expl)
 
-                if len(keyArray) > 0 :
-                    logger.info("Get some expiration data and save for backup...")
-                    #to do...
-                for keys in keyArray :
-                    logger.info("[Clear],[Expiration]:%s" % (pov.getDomainNodekey(keys[0],keys[1])))
-                    self.__factoryService.delete(keys[0],keys[1])
-            # self.finished.set()
+                    if len(keyArray) > 0 :
+                        logger.info("Get some expiration data and save for backup...")
+                        #to do...
+                    for keys in keyArray :
+                        logger.info("[Clear],[Expiration]:%s" % (pov.getDomainNodekey(keys[0],keys[1])))
+                        self.__factoryService.delete(keys[0],keys[1])
+                # self.finished.set()
+            except KeyboardInterrupt:
+                break

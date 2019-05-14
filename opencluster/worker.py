@@ -4,9 +4,11 @@ import logging
 
 from opencluster.configuration import setLogger
 from opencluster.workerparallel import WorkerParallel
-from opencluster.factory import FactoryContext
+from opencluster.rpc import RPCContext
 from opencluster.util import port_opened
 from opencluster.factorypatternexector import FactoryPatternExector
+from opencluster.workerservice import WorkerService
+from opencluster.util import norm_host_str
 
 logger = logging.getLogger(__file__)
 class Worker(WorkerParallel):
@@ -39,7 +41,16 @@ class Worker(WorkerParallel):
         while port_opened(self.host, self.port) :
             self.port = random.randint(30000, 40000)
 
-        FactoryContext.startWorker(self, self.workerType, self.host, self.port)
+        rpc = RPCContext()
+        def handle_signal(signNo, stack_frame):
+            factory_rpc.stop()
+            logger.info("Exiting from work %s, come back again :-)" %(self.workerType) )
+        signal.signal(signal.SIGINT, handle_signal)
+        signal.signal(signal.SIGTERM, handle_signal)
+
+        rpc.start(self.host, self.port, self.workerType, service_instance=WorkerService(self))
+        FactoryPatternExector.getFactory().createDomainNode("_worker_" + self.workerType, norm_host_str(self.host)+str(self.port), self.host+":"+str(self.port),True)
+        signal.pause()
 
     def getWorkerIndex(self, index, workerType=None):
         if not workerType :
@@ -48,7 +59,7 @@ class Worker(WorkerParallel):
         wsList = self.getWorkerList(workerType)
         if index >= 0 and index < len(wsList) :
             wsInfo = wsList[index]
-            return FactoryContext.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2])
+            return FactoryPatternExector.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2])
 
     def getWorkerAll(self, workerType=None):
         if not workerType : 
@@ -61,7 +72,7 @@ class Worker(WorkerParallel):
         i = 0
         for wsInfo in wsList :
             if self.host != wsInfo[0] and self.port != int(wsInfo[1]) :
-                wkList.append(FactoryContext.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2]))
+                wkList.append(FactoryPatternExector.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2]))
             else :
                 self.selfIndex = i
             i = i + 1
@@ -90,7 +101,7 @@ class Worker(WorkerParallel):
         wsList = self.getWorkerList(workerType)
         for wsInfo in wsList :
             if self.host == wsInfo[0] and self.port == int(wsInfo[1]) :
-                return FactoryContext.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2])
+                return FactoryPatternExector.getWorker(wsInfo[0], int(wsInfo[1]), wsInfo[2])
         return None
         
     def receive(self, task):
@@ -109,7 +120,7 @@ class Worker(WorkerParallel):
         wslist = self.getServiceList(serviceName)
         wklist = []
         for wsinfo in wslist :
-            wklist.append(FactoryContext.getWorker(wsinfo[0],int(wsinfo[1]),wsinfo[2],asynchronous))
+            wklist.append(FactoryPatternExector.getWorker(wsinfo[0],int(wsinfo[1]),wsinfo[2],asynchronous))
 
         return  wklist
 

@@ -3,9 +3,8 @@ import os
 import time
 import datetime
 import random
-import cPickle
+import pickle
 
-sys.path.extend([os.path.join(os.path.abspath(os.path.dirname(__file__)),'..')])
 from opencluster.util import decompress
 from opencluster.item import Task,Success
 from opencluster.manager import Manager
@@ -32,14 +31,14 @@ if __name__ == "__main__" :
 
         while loopCondition:
             for message in consumer.fetch_messages():
-                print "topic=%s, partition=%s, offset=%s, key=%s " % (message.topic, message.partition,
+                print("topic=%s, partition=%s, offset=%s, key=%s " % (message.topic, message.partition,)
                                              message.offset, message.key)
-                task = cPickle.loads(message.value)
+                task = pickle.loads(message.value)
 
                 if task.state == Task.TASK_FINISHED:
-                    print "taskId:%s,success!!!:%s"%(task.id,task.result)
+                    print("taskId:%s,success!!!:%s"%(task.id,task.result))
                 else:
-                    print "taskId:%s,failed!!!"%task.id
+                    print("taskId:%s,failed!!!"%task.id)
 
                 consumer.task_done(message)
                 last_data_time = time.time()
@@ -75,20 +74,17 @@ if __name__ == "__main__" :
 
             for e in wk.completionEvents() :
                 if isinstance(e.reason,Success) :
-                    print i,e.task.id,cPickle.loads(decompress(e.result))
+                    print(i,e.task.id,pickle.loads(decompress(e.result)))
                 else:
-                    print i,"Failed:" + str(e.reason.message)
+                    print(i,"Failed:" + str(e.reason.message))
                 i += 1
-            print "%d tasks finished in %.1f seconds" % (tasksLen, time.time() - start)
+            print("%d tasks finished in %.1f seconds" % (tasksLen, time.time() - start))
 
         time.sleep(1)
         wk.shutdown()
 
 
     except KeyboardInterrupt:
-        print "stopped by KeyboardInterrupt"
+        print("stopped by KeyboardInterrupt")
         loopCondition = False
         sys.exit(1)
-
-
-

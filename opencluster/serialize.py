@@ -1,6 +1,6 @@
 import sys, types
 from cStringIO import StringIO
-import marshal, cPickle
+import marshal, pickle
 import itertools
 from pickle import Pickler, whichmodule
 import logging
@@ -25,7 +25,7 @@ def dumps(o):
     return io.getvalue()
 
 def loads(s):
-    return cPickle.loads(s)
+    return pickle.loads(s)
 
 dump_func = dumps
 load_func = loads

@@ -4,7 +4,7 @@ import sys
 import signal
 import os.path
 import marshal
-import cPickle
+import pickle
 import multiprocessing
 import threading
 import shutil
@@ -48,10 +48,10 @@ def reply_status(driver, task_id, state, data=None):
 def run_task(task_data):
     try:
         gc.disable()
-        (task, ntry) = cPickle.loads(decompress(task_data))
+        (task, ntry) = pickle.loads(decompress(task_data))
         result = task.run(ntry)
-        return mesos_pb2.TASK_FINISHED, compress(cPickle.dumps(result, -1))
-    except Exception, e:
+        return mesos_pb2.TASK_FINISHED, compress(pickle.dumps(result, -1))
+    except Exception as e:
         logger.error(e)
         import traceback
         traceback.print_exc()
@@ -107,7 +107,7 @@ def setup_cleaner_process(workdir):
             try:
                 psutil.Process(ppid).wait()
                 os.killpg(ppid, signal.SIGKILL) # kill workers
-            except Exception, e:
+            except Exception as e:
                 pass # make sure to exit
             finally:
                 for d in workdir:
@@ -157,7 +157,7 @@ class WorkerExecutor(Executor):
                         rss = p.get_memory_info()[0] >> 20
                     if hasattr(p, 'memory_info') :
                         rss = p.memory_info()[0] >> 20
-                except Exception, e:
+                except Exception as e:
                     logger.error("worker process %d of task %s is dead: %s", pid, tid, e)
                     reply_status(driver, task_id, mesos_pb2.TASK_LOST)
                     self.busy_workers.pop(tid)
@@ -214,7 +214,7 @@ class WorkerExecutor(Executor):
             if os.path.exists(cwd):
                 try:
                     os.chdir(cwd)
-                except Exception, e:
+                except Exception as e:
                     logger.warning("change cwd to %s failed: %s", cwd, e)
             else:
                 logger.warning("cwd (%s) not exists", cwd)
@@ -237,7 +237,7 @@ class WorkerExecutor(Executor):
 
             logger.debug("executor started at %s", slaveInfo.hostname)
 
-        except Exception, e:
+        except Exception as e:
             import traceback
             msg = traceback.format_exc()
             logger.error("init executor failed: %s", msg)
@@ -268,7 +268,7 @@ class WorkerExecutor(Executor):
             self.busy_workers[task.task_id.value] = (task, pool)
             pool.apply_async(run_task, [task.data], callback=callback)
 
-        except Exception, e:
+        except Exception as e:
             import traceback
             msg = traceback.format_exc()
             reply_status(driver, task_id, mesos_pb2.TASK_LOST, msg)
@@ -286,7 +286,7 @@ class WorkerExecutor(Executor):
             try:
                 for pi in p._pool:
                     os.kill(pi.pid, signal.SIGKILL)
-            except Exception, e:
+            except Exception as e:
                 pass
         for _, p in self.idle_workers:
             terminate(p)

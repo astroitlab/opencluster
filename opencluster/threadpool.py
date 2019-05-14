@@ -37,7 +37,7 @@ class Worker(Thread):
                 break
             try:
                 job()
-            except Exception,e:
+            except Exception as e:
                 logger.error("unhandled exception from job in worker thread %s: %s", self.name,e)
                 # we continue running, just pick another job from the queue
 

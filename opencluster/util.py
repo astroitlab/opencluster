@@ -116,3 +116,7 @@ def port_opened(ip,port):
 def random_time_str() :
     j = str(random.randint(0, 9000000)).ljust(7,'0')
     return "%s%s" % (datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"),j)
+
+
+def norm_host_str(host):
+    return "".join(("".join(host.split("."))).split(":"))

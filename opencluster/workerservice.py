@@ -1,7 +1,8 @@
 import logging
 import threading
-import cPickle
+import pickle
 import traceback
+import Pyro4
 
 from opencluster.util import compress, decompress
 from opencluster.errors import ServiceError
@@ -14,7 +15,6 @@ class WorkerService(object):
         self.condition = threading.Condition()
 
     def setWorker(self, worker):
-
         worker.host = self.worker.host
         worker.port = self.worker.port
         worker.workerType = self.worker.workerType
@@ -22,12 +22,10 @@ class WorkerService(object):
 
     def doTask(self, v_task):
         try :
-            task =  cPickle.loads(decompress(v_task))
-            return compress(cPickle.dumps(self.worker.doTask(task.data),-1))
-        except Exception, e:
-            print '>>> traceback <<<'
+            task =  pickle.loads(decompress(v_task))
+            return compress(pickle.dumps(self.worker.doTask(task.data),-1))
+        except Exception as e:
             traceback.print_exc()
-            print '>>> end of traceback <<<'
             logger.error(e)
             raise ServiceError(e)
 
@@ -35,5 +33,5 @@ class WorkerService(object):
         #to-do, need condition
         self.worker.interrupted(True)
 
-    def receiveMaterials(self, v_task):
-        return self.worker.receiveMaterials(cPickle.loads(decompress(v_task)))
+    def receive(self, v_task):
+        return self.worker.receive(pickle.loads(decompress(v_task)))

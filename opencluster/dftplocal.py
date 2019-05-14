@@ -1,9 +1,9 @@
-from servicecontext import ServiceContext
+from opencluster.rpc import RPCContext
 class DftpLocal(object) :
 
     def __init__(self, url):#dftp://
         self.url = url
-        self.node = ServiceContext.getService("",33,"")
+        self.node = RPCContext.getService("",33,"")
 
 
     def readByte(self, f, b, t) :

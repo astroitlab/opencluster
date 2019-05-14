@@ -10,7 +10,7 @@ import threading
 import logging
 import signal
 import marshal
-import cPickle
+import pickle
 import MySQLdb
 
 import Pyro4
@@ -249,7 +249,7 @@ class FactoryMesos(object):
         task.name = "%s-%s" % (t.id, t.tried)
         task.executor.MergeFrom(self.executor)
 
-        task.data = compress(cPickle.dumps((t, t.tried), -1))
+        task.data = compress(pickle.dumps((t, t.tried), -1))
 
         cpu = task.resources.add()
         cpu.name = "cpus"
@@ -318,7 +318,7 @@ class FactoryMesos(object):
         if status!=mesos_pb2.TASK_FINISHED:
             t.result = Exception(str(result))
         else:
-            t.result = cPickle.loads(decompress(result))
+            t.result = pickle.loads(decompress(result))
 
         if len(self.warehouse_addrs) > 2:
             cur = self.outputdb.cursor()
@@ -328,8 +328,8 @@ class FactoryMesos(object):
             cur.close()
         else:
             try :
-                self.producer.send_messages("%sResult"%(t.warehouse), cPickle.dumps(t))
-            except Exception,e:
+                self.producer.send_messages("%sResult"%(t.warehouse), pickle.dumps(t))
+            except Exception as e:
                 logger.error(e)
 
     @safe
@@ -438,7 +438,7 @@ def start_factory_mesos():
                 dataResults = cur.execute("select task_id,task_desc,task_start_time,status from t_task where status=0 order by priority asc limit 200")
                 results = cur.fetchmany(dataResults)
                 for r in results :
-                    sched.append_task(cPickle.loads(r[1]))
+                    sched.append_task(pickle.loads(r[1]))
                     curUpt.execute("update t_task set task_start_time=now(),status=1 where task_id='" + r[0] + "'")
                 if len(results) > 0:
                     db.commit()
@@ -472,7 +472,7 @@ def start_factory_mesos():
             for message in consumer.fetch_messages():
                 logger.error("%s:%s:%s: key=%s " % (message.topic, message.partition,
                                              message.offset, message.key))
-                sched.append_task(cPickle.loads(message.value))
+                sched.append_task(pickle.loads(message.value))
                 consumer.task_done(message)
                 last_data_time = time.time()
             if sched.tasks_len(priority) > MAX_WAITING_TASK :

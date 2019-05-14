@@ -1,14 +1,16 @@
 import sys
 import signal
 import socket
+import time
+import logging
 import Pyro4
 import zmq
 
 from opencluster.configuration import Conf, setLogger
-from opencluster.node import *
+from opencluster.node import Node, NodeFile
+from opencluster.errors import ServiceError
 from opencluster.factorypatternexector import FactoryPatternExector
-from opencluster.errors import *
-from opencluster.service import *
+from opencluster.service import Service, Worker
 from opencluster.process import ServiceProcess, WorkerProcess
 from opencluster.util import spawn
 
@@ -16,7 +18,6 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle'])
 Pyro4.config.COMPRESSION = True
 Pyro4.config.SERVERTYPE = "multiplex"    #  multiplex or thread
-
 
 logger = logging.getLogger(__name__)
 
@@ -119,8 +120,6 @@ class NodeDademon(object):
     def __init__(self,host, port, name):
         global pyroLoopCondition
         global pyroUri
-
-        setLogger("Node-%s"%host,port)
 
         self.node = Node(host, port, "Node" + name)
         for workerStr in Conf.getNodeAvailWorkers().split(",") :

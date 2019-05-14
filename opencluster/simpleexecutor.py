@@ -4,7 +4,7 @@ import sys
 import signal
 import os.path
 import marshal
-import cPickle
+import pickle
 import multiprocessing
 import threading
 import shutil
@@ -40,12 +40,12 @@ def reply_status(driver, task_id, state, data=None):
 
 def run_task(task_data):
     try:
-        (task, ntry) = cPickle.loads(decompress(task_data))
+        (task, ntry) = pickle.loads(decompress(task_data))
         logger.debug(task)
 
         result = task.run(ntry)
-        return mesos_pb2.TASK_FINISHED, compress(cPickle.dumps(result, -1))
-    except Exception, e:
+        return mesos_pb2.TASK_FINISHED, compress(pickle.dumps(result, -1))
+    except Exception as e:
         logger.error(e)
         import traceback
         msg = traceback.format_exc()
@@ -72,7 +72,7 @@ class SimpleWorkerExecutor(Executor):
             if os.path.exists(cwd):
                 try:
                     os.chdir(cwd)
-                except Exception, e:
+                except Exception as e:
                     logger.warning("change cwd to %s failed: %s", cwd, e)
             else:
                 logger.warning("cwd (%s) not exists", cwd)
@@ -83,7 +83,7 @@ class SimpleWorkerExecutor(Executor):
 
             logger.debug("executor started at %s", slaveInfo.hostname)
 
-        except Exception, e:
+        except Exception as e:
             import traceback
             msg = traceback.format_exc()
             logger.error("init executor failed: %s", msg)
@@ -120,7 +120,7 @@ class SimpleWorkerExecutor(Executor):
             self.busy_workers[task.task_id.value] = (task, pool)
             pool.apply_async(run_task, [task.data], callback=callback)
 
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             msg = traceback.format_exc()
@@ -171,7 +171,7 @@ class SimpleWorkerExecutor(Executor):
             try:
                 for pi in p._pool:
                     os.kill(pi.pid, signal.SIGKILL)
-            except Exception, e:
+            except Exception as e:
                 pass
         for _, p in self.idle_workers:
             terminate(p)

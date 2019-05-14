@@ -1,9 +1,10 @@
 import logging
 import Queue
 
-from item import *
-from factory import FactoryContext
-from asyncexector import AsyncExector
+from opencluster.item import FactoryObjValue,ITEM_READY
+from opencluster.factory import FactoryContext
+from opencluster.asyncexector import AsyncExector
+from opencluster.workerlocal import WorkerLocal
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,10 @@ class FactoryPatternExector(object):
         return cls.getFactory().update(keys[0], keys[1], wh)
     
     @classmethod
+    def getWorker(cls, host, port, workerType,synchronous=False):
+        return WorkerLocal(host, port, workerType,synchronous)
+
+    @classmethod
     def append(cls, ppb):
         try:
             ob = cls.getFactory().update(ppb.domain, ppb.node, ppb.inHouse)
@@ -95,15 +100,14 @@ class FactoryPatternExector(object):
                         curPpb.outhouse.setReady(ITEM_READY)
                     else:
                         cls.queue.put(curPpb)
-                except Exception,e1 :
+                except Exception as e1 :
                     logger.error(e1)
 
             if cls.rpl is None :
                 cls.rpl = AsyncExector(task , ())
                 cls.rpl.run()
 
-
-        except Exception,e :
+        except Exception as e :
             logger.error(e)
 
 

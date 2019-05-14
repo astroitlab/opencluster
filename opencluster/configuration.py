@@ -1,16 +1,11 @@
 import os,sys
-import ConfigParser
+import configparser
 import logging
 import logging.handlers
 
-logger = logging.getLogger()
-
-def setLogger(name,id,level=logging.DEBUG):
-    if sys.platform == "win32":
-        logPathFmt = "E:\\astrodata\\logs\\%s-%s.log"
-    else:
-        logPathFmt = "/work/opencluster/logs/%s-%s.log"
-
+def setLogger(name, id,level=logging.DEBUG):
+    logPathFmt = Conf.getLogDir() + "/%s-%s.log"
+    logger = logging.getLogger()
     if len(logging.getLogger().handlers) > 0 :
         return
     rollfdlr = logging.handlers.RotatingFileHandler(filename=logPathFmt%(name,id),mode='a', maxBytes=10*1024*1024,backupCount=1)
@@ -34,23 +29,17 @@ class Conf(object):
     PPP_HEARTBEAT = "\x02"  # Signals worker heartbeat
 
     MEM_PER_TASK = 200.0
-    if sys.platform == "win32":
-        configRootPath = os.path.dirname(__file__)
-    else:
-        configRootPath = "/work/opencluster"
-    cf = ConfigParser.ConfigParser()
-    configFilePath = os.path.join(configRootPath,"config.ini")
-    cf.read(configFilePath)
+    cf = None
 
     def __init__(self):
         if not Conf.cf :
-            Conf.cf = ConfigParser.ConfigParser()
+            Conf.cf = configparser.ConfigParser()
             Conf.cf.read(Conf.configFilePath)
-            
+
     @classmethod
     def setConfigFile(cls, filePath):
         cls.configFilePath = filePath
-        cls.cf = ConfigParser.ConfigParser()
+        cls.cf = configparser.ConfigParser()
         cls.cf.read(Conf.configFilePath)
 
     @classmethod
@@ -165,7 +154,6 @@ class Conf(object):
     def getWorkDirs(cls):
         return cls.cf.get("node", "work_dirs")
 
-
-
-
-
+    @classmethod
+    def getLogDir(cls):
+        return cls.cf.get("factory", "logDir")

@@ -3,7 +3,7 @@ import socket
 import logging
 import marshal
 import datetime
-import cPickle
+import pickle
 import threading, Queue
 import time
 import random
@@ -36,8 +36,8 @@ def run_task(task, aid):
     try:
         result = task.run(aid)
         # find Worker instance by workerType
-        return (task.id, Success(), compress(cPickle.dumps(result,-1)))
-    except Exception, e:
+        return (task.id, Success(), compress(pickle.dumps(result,-1)))
+    except Exception as e:
         logger.error("error in task %s", task)
         import traceback
         traceback.print_exc()
@@ -177,7 +177,7 @@ class StandaloneScheduler(Scheduler):
                             except CommunicationError,ce:
                                 #logger.error("CommunicationErrorCommunicationError")
                                 continue
-                            except Exception,e :
+                            except Exception as e :
                                 self.taskEnded(self.slaveTasks[tid], OtherFailure(e), None)
                                 logger.debug("Task %s fail  - (%d/%d)", tid, self.fail_count, self.taskNum)
                                 logger.error(traceback.print_exc())
@@ -271,7 +271,7 @@ class FactoryScheduler(Scheduler):
 
             values=[]
             for task in tasks:
-                values.append((task.id,cPickle.dumps(task),0,task.priority,self.manager.name))
+                values.append((task.id,pickle.dumps(task),0,task.priority,self.manager.name))
 
             cur.executemany('insert into t_task (task_id,task_desc,status,priority,job_id) values(%s,%s,%s,%s,%s)',values)
 
@@ -294,7 +294,7 @@ class FactoryScheduler(Scheduler):
 
             for task in tasks:
                 #self.producer.send_messages(self.warehouse,task.id, json.dumps(task,default=object2dict))
-                producer.send_messages(topic, self.manager.name, cPickle.dumps(task))
+                producer.send_messages(topic, self.manager.name, pickle.dumps(task))
         finally:
             if kafka_client:
                 kafka_client.close()
@@ -538,7 +538,7 @@ class MesosScheduler(Scheduler):
         task.name = "task(%s/%d)" % (t.id, self.taskNum)
         task.executor.MergeFrom(self.executor)
 
-        task.data = compress(cPickle.dumps((t, t.tried), -1))
+        task.data = compress(pickle.dumps((t, t.tried), -1))
 
         cpu = task.resources.add()
         cpu.name = "cpus"

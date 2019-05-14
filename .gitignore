@@ -1,6 +1,11 @@
 .svn
 .gitignore
 .idea
+.vscode
+dist
+build
+opencluster.egg-info
+**/*.pyc
 dpsf
 Pyro4
 data
@@ -15,8 +20,10 @@ pymuser
 pyspark
 resource
 scripts
-examples/*.pyc
-opencluster/*.pyc
+webmonitor
+muserspark
+Data_Server_web2.0
+opencluster/ui/sessions
 csrhwebManage.py
 sbin/start_realtime.sh
 sbin/start_rtdserver.sh
@@ -25,3 +32,6 @@ examples/mpiMsg.py
 examples/msgManager.py
 examples/msgWorker.py
 examples/test_rabbit.py
+examples/imPCIMS.py
+opencluster/version.py
+**/.DS_Store

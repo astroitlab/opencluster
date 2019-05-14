@@ -1,13 +1,12 @@
 import logging
-import Queue
-import hbdaemon
+import queue
 import Pyro4
 import time
 import traceback
 
+from opencluster.hbdaemon import HbDaemon
 from opencluster.errors import LeaderError
 from opencluster.configuration import Conf
-from opencluster.servicecontext import ServiceContext
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +17,12 @@ class FactoryLeader(object):
         self.serviceName = serviceName
         self.thisServer = "%s:%s" % (host, port)
         self.groupServers = servers
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.rpl = None
 
     def getThisServer(self):
         return self.thisServer
-        
+
     def wantBeMaster(self, factoryservice):
         logger.info("wantBeMaster.............................")
         sv = []
@@ -40,30 +39,31 @@ class FactoryLeader(object):
     def getLeaderFactory(self):
         index = self.getLeaderIndex(self.thisServer)
         return self.electionLeader(-1, index)
-        
+
     def getNextLeader(self):
         logger.info("getNextLeader........")
         index = self.getLeaderIndex(self.thisServer)
         return self.electionLeader(index, index+1)
-        
-    def electionLeader(self, begin, index):
+
+    def electionLeader(self, begin=0, index=0):
         theOk = False
         if index >= len(self.groupServers) :
             index = 0
         server = self.groupServers[index].split(":")
         factoryService = None
-        
+
         try :
-            factoryService = ServiceContext.getService(server[0], int(server[1]), self.serviceName)
+            factoryService = RPCContext.getService(server[0], int(server[1]),
+                                                   self.serviceName)
             logger.debug(factoryService)
             if factoryService and factoryService.askLeader():
                 theOk = True
 
-        except Exception , e :
+        except Exception as e :
             logger.error("electionLeader2 %s:%s----%s" % (server[0], server[1], e))
             theOk = False
             if begin != index :
-                if not self.alwaysTry and begin < 0: 
+                if not self.alwaysTry and begin < 0:
                     begin = index
                 time.sleep(3)
                 factoryService = self.electionLeader(begin, index + 1)
@@ -72,23 +72,23 @@ class FactoryLeader(object):
             logger.info("leader server is %s:%s" % (server[0], server[1]))
         return factoryService
 
-    def electionFixedLeader(self, index):
+    def electionFixedLeader(self, index=0):
         theOk = True
         if index >= len(self.groupServers) :
             index = 0
         server = self.groupServers[index].split(":")
         factoryService = None
         try :
-            factoryService = ServiceContext.getService(server[0], int(server[1]), self.serviceName)
+            factoryService = RPCContext.getService(server[0], int(server[1]),
+                                                   self.serviceName)
             if factoryService :
                 factoryService.askLeader()
-        except LeaderError , le :
+        except LeaderError as le :
             logger.error("electionLeader %s:%s----:%s" % (server[0], server[1], le))
             theOk = False
             leaderIndex = self.getLeaderIndex(le.getLeaderServer())
             factoryService = self.electionLeader(leaderIndex)
-
-        except Exception , e :
+        except Exception as e :
             logger.error("electionLeader %s:%s----:%s" % (server[0], server[1], e))
             theOk = False
             factoryService = self.electionLeader(index + 1)
@@ -97,27 +97,26 @@ class FactoryLeader(object):
             logger.info("leader server is %s:%s" % (server[0], server[1]))
         return factoryService
     def getLeaderIndex(self, sa):
-        i = 0;
+        i = 0
         for server in self.groupServers :
             if sa == server :
                 break
             i += 1
         return i
-        
+
     def setMaster(self, isMaster, factory):
         self.master = isMaster
         if isMaster :
-            logger.info("leader server is %s" % self.thisServer)  
+            logger.info("leader server is %s" % self.thisServer)
         if self.master :
-            hbdaemon.HbDaemon.runClearTask(factory)
+            HbDaemon.runClearTask(factory)
 
     def getMaster(self):
         try :
             if self.master :
                 return self.thisServer.split(":")
-        except Exception,e :
+        except Exception as e :
             logger.error(e)
-
 
     def getOtherFactory(self):
         factorys = []
@@ -125,15 +124,16 @@ class FactoryLeader(object):
             if str != self.thisServer :
                 server = str.split(":")
                 try :
-                    pk =  ServiceContext.getService(server[0], int(server[1]), self.serviceName)
-                    clientHost = pk.getClientHost()#check alive state,if not connected,raise CommunicationError
+                    pk = RPCContext.getService(server[0], int(server[1]),
+                                               self.serviceName)
+                    clientHost = pk.getClientHost() #check alive state,if not connected,raise CommunicationError
                     factorys.append(pk)
-                except Exception,e :
+                except Exception as e :
                     if isinstance(e,Pyro4.errors.CommunicationError) :
                         logger.error("%s maybe is shutdown,can't connected." % str)
-                
+
         return factorys
-        
+
     def checkMasterFactory(self, sv, factory):
         if self.master or not self.getOtherMasterFactory(sv) :
             sv = self.thisServer.split(":")
@@ -141,10 +141,10 @@ class FactoryLeader(object):
             return True
         else :
             return False
-            
+
     def getOtherMasterFactory(self, sv):
         pkMaster = None
-        
+
         try :
             for pk in self.getOtherFactory() :
                 ask = pk.askMaster()
@@ -154,18 +154,18 @@ class FactoryLeader(object):
                     sv.append(ask[0])
                     sv.append(ask[1])
 
-        except Exception, e :
+        except Exception as e :
             logger.error("getOtherMasterFactory...Error:%s" % e)
         return pkMaster
-        
+
     def setInitFactoryInfo(self, fromFactory, toFactory):
         try :
             toFactory.setFactoryInfo(fromFactory.getFactoryInfo())
-        except Exception, e :
+        except Exception as e :
             logger.error("setInitFactoryInfo...Error:%s" % e)
 
 
-            
+
     def runCopyTask(self, domainNodeKey, factory):
         logger.info("runCopyTask:"+domainNodeKey+"............................")
         # def task(vfactory, queue):
@@ -179,14 +179,13 @@ class FactoryLeader(object):
             obj = factory.getFactoryInfo()
             for pk in self.getOtherFactory() :
                 pk.setFactoryInfo(obj)
-        except Exception,e:
+        except Exception as e:
             logger.error("runCopyTask error:%s"%e)
 
-    def copyFactoryInfo(self, obj):  
+    def copyFactoryInfo(self, obj):
         sendlist = []
         for factory in self.getOtherFactory() :
             sendlist.append(factory.setFactoryInfo(obj))
         return sendlist
-    
-#end        
 
+#end
