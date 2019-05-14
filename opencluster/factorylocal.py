@@ -42,7 +42,6 @@ class FactoryLocal(object):
         ob = None
         if obj is None :
             return None
-        print 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW',node,domain
         if FactoryObjValue.checkGrammer(domain) and FactoryObjValue.checkGrammer(node) :
             try:
                 ov = self.factory.create(domain,node,obj,self.sid,isHearBeat,timeout)
