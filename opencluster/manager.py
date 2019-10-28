@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 import optparse
-import Queue
+import queue
 import datetime
 import time
 import pickle
@@ -18,7 +18,6 @@ from opencluster.util import random_time_str
 from opencluster.item import ManagerOption, CompletionEvent, Success, OtherFailure
 
 parser = optparse.OptionParser(usage="Usage: python %prog [options]")
-
 
 def add_default_options():
     parser.disable_interspersed_args()
@@ -180,7 +179,7 @@ class Manager(object):
                 try:
                     yield self.scheduler.completionEvents.get_nowait()
                     self.scheduler.completionEvents.task_done()
-                except Queue.Empty:
+                except queue.Empty:
                     if self.status.totalNum == self.status.finished_count + self.status.fail_count:
                         break
         if self.mode == "factory":

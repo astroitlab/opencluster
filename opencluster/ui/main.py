@@ -277,5 +277,6 @@ def getNodeService(node) :
     return FactoryContext.getNodeDaemon(node)
 
 if __name__ == "__main__" :
+    Conf.setConfigFile("/temp/opencluster/config.ini")
     thisServer = WebServer(Conf.getWebServers())
     thisServer.start()

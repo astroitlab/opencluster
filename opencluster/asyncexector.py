@@ -1,5 +1,5 @@
 import logging
-import thread
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +9,7 @@ class AsyncExector(object):
         self.args=args
     def run(self):
         try :
-            thread.start_new_thread(self.task, self.args)    
-        except Exception , e: 
+            t = threading.Thread(target=self.task, name=target.__name__, args=self.args, kwargs=None)
+            t.start()
+        except Exception as e: 
             logger.error("AsyncExector task :%s" % (e))

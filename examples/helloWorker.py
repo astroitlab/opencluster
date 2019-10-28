@@ -5,8 +5,6 @@ import logging
 import socket
 
 from opencluster.worker import Worker
-from opencluster.configuration import Conf
-
 logger = logging.getLogger(__name__)
 
 class HelloWorker(Worker) :
@@ -20,10 +18,5 @@ class HelloWorker(Worker) :
 
 if __name__ == "__main__" :
     wk = HelloWorker()
-
-    if len(sys.argv) != 2 :
-        print("Usage: python helloWorker.py localIP")
-        sys.exit(1)
-
-    wk.waitWorking(sys.argv[1])
+    wk.waitWorking()
 

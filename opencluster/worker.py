@@ -1,8 +1,11 @@
 import datetime
+import os, sys
 import random
 import logging
+import optparse
+import signal
 
-from opencluster.configuration import setLogger
+from opencluster.configuration import setLogger,Conf
 from opencluster.workerparallel import WorkerParallel
 from opencluster.rpc import RPCContext
 from opencluster.util import port_opened
@@ -11,31 +14,64 @@ from opencluster.workerservice import WorkerService
 from opencluster.util import norm_host_str
 
 logger = logging.getLogger(__file__)
+
+
+parser = optparse.OptionParser(usage="Usage: python %prog [options]")
+
+def add_default_options():
+    parser.disable_interspersed_args()
+    parser.add_option("-i", "--host", type="string", default="localhost")
+    parser.add_option("-p", "--port", type="int", default=0, help="port")
+    parser.add_option("-r", "--retry", type="int", default=0, help="retry times when failed (default: 0)")
+    parser.add_option("-c", "--cpus", type="float", default=1.0, help="cpus used")
+    parser.add_option("-G", "--gpus", type="float", default=0, help="gpus used")
+    parser.add_option("-M", "--mem", type="float", help="memory used")
+    parser.add_option("-e", "--config", type="string", default="/work/opencluster/config.ini",
+                      help="path for configuration file")
+    parser.add_option("-q", "--quiet", action="store_true", help="be quiet", )
+    parser.add_option("-v", "--verbose", action="store_true", help="show more useful log", )
+
+add_default_options()
+
+def parse_options():
+    (options, args) = parser.parse_args()
+    if not options:
+        parser.print_help()
+        sys.exit(2)
+
+    if options.mem is None:
+        options.mem = Conf.MEM_PER_TASK
+
+    options.logLevel = (options.quiet and logging.ERROR or options.verbose and logging.DEBUG or logging.INFO)
+
+    if options.config:
+        if os.path.exists(options.config) and os.path.isfile(options.config):
+            Conf.setConfigFile(options.config)
+        else:
+            logger.error("configuration file is not found. (%s)" %(options.config,))
+            sys.exit(2)
+    return options
+
 class Worker(WorkerParallel):
-    def __init__(self,workerType, level=logging.DEBUG):
+    def __init__(self, workerType):
         super(Worker,self).__init__()
-        self.host = None
-        self.port = None
+        self.options = parse_options()
+        self.host = self.options.host
+        self.port = self.options.port
         self.workerType = workerType
         self._interrupted = False
-        self.level = level
         j = str(random.randint(0, 9000000)).ljust(7,'0')
         workerId = "%s%s" % (datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"),j)
-        setLogger(self.workerType,workerId,self.level)
+        setLogger(self.workerType, workerId, self.options.logLevel)
 
     def doTask(self, task):
         pass
     def stopTask(self):
         pass
     
-    def waitWorkingByService(self, host, port=None) :
-        self.host = host
-        self.port = port
+    def waitWorkingByService(self, host, port) :
 
-        if self.host is None:
-            self.host = "127.0.0.1"
-
-        if self.port is None:
+        if self.port == 0:
             self.port = random.randint(30000, 40000)
 
         while port_opened(self.host, self.port) :
@@ -43,7 +79,7 @@ class Worker(WorkerParallel):
 
         rpc = RPCContext()
         def handle_signal(signNo, stack_frame):
-            factory_rpc.stop()
+            rpc.stop()
             logger.info("Exiting from work %s, come back again :-)" %(self.workerType) )
         signal.signal(signal.SIGINT, handle_signal)
         signal.signal(signal.SIGTERM, handle_signal)

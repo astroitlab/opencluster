@@ -32,9 +32,7 @@ class Conf(object):
     cf = None
 
     def __init__(self):
-        if not Conf.cf :
-            Conf.cf = configparser.ConfigParser()
-            Conf.cf.read(Conf.configFilePath)
+        pass
 
     @classmethod
     def setConfigFile(cls, filePath):

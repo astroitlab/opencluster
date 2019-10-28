@@ -1,16 +1,15 @@
 import logging
-import Queue
+import queue
 
-from opencluster.item import FactoryObjValue,ITEM_READY
+from opencluster.item import FactoryObjValue
 from opencluster.factory import FactoryContext
 from opencluster.asyncexector import AsyncExector
 from opencluster.workerlocal import WorkerLocal
-
 logger = logging.getLogger(__name__)
 
 class FactoryPatternExector(object):
     factory = None
-    queue = Queue.Queue()
+    queue = queue.Queue()
     rpl = None
 
     @classmethod
@@ -82,33 +81,33 @@ class FactoryPatternExector(object):
     def getWorker(cls, host, port, workerType,synchronous=False):
         return WorkerLocal(host, port, workerType,synchronous)
 
-    @classmethod
-    def append(cls, ppb):
-        try:
-            ob = cls.getFactory().update(ppb.domain, ppb.node, ppb.inHouse)
-            ppb.thisVersion = ob
-            cls.queue.put(ppb)
+    # @classmethod
+    # def append(cls, ppb):
+    #     try:
+    #         ob = cls.getFactory().update(ppb.domain, ppb.node, ppb.inHouse)
+    #         ppb.thisVersion = ob
+    #         cls.queue.put(ppb)
 
-            def task():
-                try:
-                    curPpb = cls.queue.get()
-                    curVersion = cls.getFactory().getLatest()
-                    if not curVersion :
-                        curPpb.thisVersion = curVersion
-                        curPpb.rx.setRecall(False)
-                        curPpb.outhouse.putAll(curVersion)
-                        curPpb.outhouse.setReady(ITEM_READY)
-                    else:
-                        cls.queue.put(curPpb)
-                except Exception as e1 :
-                    logger.error(e1)
+    #         def task():
+    #             try:
+    #                 curPpb = cls.queue.get()
+    #                 curVersion = cls.getFactory().getLatest()
+    #                 if not curVersion :
+    #                     curPpb.thisVersion = curVersion
+    #                     curPpb.rx.setRecall(False)
+    #                     curPpb.outhouse.putAll(curVersion)
+    #                     curPpb.outhouse.setReady(ITEM_READY)
+    #                 else:
+    #                     cls.queue.put(curPpb)
+    #             except Exception as e1 :
+    #                 logger.error(e1)
 
-            if cls.rpl is None :
-                cls.rpl = AsyncExector(task , ())
-                cls.rpl.run()
+    #         if cls.rpl is None :
+    #             cls.rpl = AsyncExector(task , ())
+    #             cls.rpl.run()
 
-        except Exception as e :
-            logger.error(e)
+    #     except Exception as e :
+    #         logger.error(e)
 
 
 #end

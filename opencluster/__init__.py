@@ -1,8 +1,8 @@
 import sys,os
 
-if sys.version_info < (2, 6):
+if sys.version_info < (3, 4):
     import warnings
-    warnings.warn("This version is unsupported on Python versions older than 2.6", ImportWarning)
+    warnings.warn("This version is unsupported on Python versions older than 3.4", ImportWarning)
 
 def _checkRequirePackage():
     import os, logging
